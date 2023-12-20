@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -11,11 +11,15 @@ import {
 import Loader from "../../Loader/Loader";
 import { useGetCoursesAnalyticsQuery } from "@/redux/features/analytics/analyticsApi";
 import { styles } from "@/app/style/style";
+import axios from "axios";
+import { getCookie } from "@/app/helper/auth";
 
 type Props = {};
-
+ 
 const CourseAnalytics = (props: Props) => {
   const { data, isLoading } = useGetCoursesAnalyticsQuery({});
+  const [dataCoaurse, setDataCourse] = useState<any>(null)
+  const token = getCookie("token")
 
   // const analyticsData = [
   //     { name: 'Jun 2023', uv: 3 },
@@ -27,10 +31,32 @@ const CourseAnalytics = (props: Props) => {
   //     { name: 'December 2023', uv: 7 },
   //   ];
 
+  useEffect(() => {
+    courseAnalytics()
+  }, [])
+
+  const courseAnalytics = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}get-courses-analytics`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("Get Course Analytics", response);
+        setDataCourse(response.data);
+      })
+      .catch((error) => {
+        console.log("Get Course Analytics  ERROR", error.response.data.message);
+      });
+  };
+
+
   const analyticsData: any = [];
 
-  data &&
-    data.courses.last12Months.forEach((item: any) => {
+  dataCoaurse &&
+  dataCoaurse?.courses?.last12Months?.forEach((item: any) => {
       analyticsData.push({ name: item.month, uv: item.count });
     });
 
@@ -38,7 +64,7 @@ const CourseAnalytics = (props: Props) => {
 
   return (
     <>
-      {isLoading ? (
+      {!dataCoaurse ? (
         <Loader />
       ) : (
         <div className="h-screen">

@@ -4,13 +4,17 @@ import { Poppins } from "next/font/google";
 import { Josefin_Sans } from "next/font/google";
 import { Providers } from "./Provider";
 import React, { FC, useEffect } from "react";
-
 import { Toaster } from "react-hot-toast";
 import Loader from "./components/Loader/Loader";
 import { SessionProvider } from "next-auth/react";
-import socketIO from "socket.io-client";
-const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
-const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
+
+// import socketIO from "socket.io-client";
+// const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
+// const socketId = socketIO(ENDPOINT, {withCredentials: true, transports: ["websocket"] });
+// // const socketId = socketIO('http://localhost:8000/',{  
+//   withCredentials: true,
+//   transports: ["websocket"]
+// })
 
 import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
 import { ThemeProvider } from "./utils/theme-provider";
@@ -39,13 +43,17 @@ export default function RootLayout({
           className={`${poppins.variable} ${josefin.variable} !bg-white bg-no-repeat `}
         >
           <Providers>
-          <SessionProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              <Custom>
-                <div>{children}</div>
-              </Custom>
-              <Toaster position="top-center" reverseOrder={false} />
-            </ThemeProvider>
+            <SessionProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+              >
+                
+                  <div>{children}</div>
+                
+                <Toaster position="top-center" reverseOrder={false} />
+              </ThemeProvider>
             </SessionProvider>
           </Providers>
         </body>
@@ -57,9 +65,9 @@ export default function RootLayout({
 const Custom: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isLoading } = useLoadUserQuery({});
 
-  useEffect(() => {
-    socketId.on("connection", () => {});
-  }, []);
+  // useEffect(() => {
+  //   socketId.on("connection", () => {});
+  // }, []);
 
   return <div>{isLoading ? <Loader /> : <div>{children} </div>}</div>;
 };

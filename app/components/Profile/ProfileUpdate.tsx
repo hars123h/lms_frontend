@@ -3,6 +3,8 @@ import { styles } from "@/app/style/style";
 import { useUpdatePasswordMutation } from "@/redux/features/user/userApi";
 import React, { FC, useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
+import axios from "axios";
+import { getCookie } from "@/app/helper/auth";
 
 type Props = {};
 
@@ -11,13 +13,39 @@ const ProfileUpdate: FC<Props> = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [updatePassword, { isSuccess, error }] = useUpdatePasswordMutation();
+  const token = getCookie("token");
+
 
   const passwordChangeHandler = async (e: any) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       toast.error("Passwords do not match");
-    } else {
-      await updatePassword({ oldPassword, newPassword });
+    } else { 
+
+      const updateData = await axios({
+        method: "PUT",
+        url: `${process.env.NEXT_PUBLIC_SERVER_URI}update-user-password`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: { oldPassword, newPassword },
+      })
+        .then((response) => {
+          console.log("Password  UPDATE SUCCESS", response);
+            toast.success("Password  Updated Successfully");
+
+          // updateUser(response, () => {
+          //   toast.success("Profile  Updated Successfully");
+          //   // setDataUser(response.data.user)
+          //   setCheck(!check);
+          // });
+        })
+        .catch((error) => {
+          console.log("Password  Update Error", error.response.data.message);
+          // setValues({ ...values, buttonText: "Submit" });
+          toast.error(error.response.data.message);
+        });
+      // await updatePassword({ oldPassword, newPassword });
     }
   };
 

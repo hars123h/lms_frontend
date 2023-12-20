@@ -4,12 +4,13 @@ import BannerImage from "../../../public/assests/heroBanner.jpg";
 import Link from "next/link";
 import BannerBook from '../../../public/assests/courseBanner1.svg';
 import Banner2 from '../../../public/assests/courseBanner2.png';
-
 import Image from "next/image";
 
-type Props = {};
+type Props = {
+  children:React.ReactNode;
+};
 
-const PageHeader: FC<Props> = () => {
+const PageHeader: FC<Props> = ({children}) => {
   return (
     <>
       <div
@@ -35,18 +36,7 @@ const PageHeader: FC<Props> = () => {
           />
         </div>
         <div className="flex justify-center items-center">
-          <div className="flex items-center h-[300px] justify-center flex-col text-[#FFFFFF] font-Josefin">
-            <h2 className="text-[50px]  font-[700]">Courses</h2>
-            <div className="flex">
-              <Link className="mr-[13px]" href="/">
-                Home
-              </Link>
-              <div className="flex items-center">
-                <p className="h-[5px] w-[6px] rounded-full bg-[#fff] mr-[5px]"></p>
-                <p>Courses</p>
-              </div>
-            </div>
-          </div>
+          {children}
         </div>
       </div>
     </>

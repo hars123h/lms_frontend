@@ -5,23 +5,55 @@ import CourseOptions from "./CourseOptions";
 import CourseData from "./CourseData";
 import CourseContent from "./CourseContent";
 import CoursePreview from "./CoursePreview";
-import { useEditCourseMutation, useGetAllCoursesQuery } from "../../../../redux/features/courses/coursesApi";
+import {
+  useEditCourseMutation,
+  useGetAllCoursesQuery,
+} from "../../../../redux/features/courses/coursesApi";
 import { toast } from "react-hot-toast";
 import { redirect } from "next/navigation";
+import axios from "axios";
+import { getCookie } from "@/app/helper/auth";
+import { useRouter } from "next/navigation";
 
 type Props = {
-    id: string;
+  id: string;
 };
 
-const EditCourse:FC<Props> = ({id}) => {
-    const [editCourse,{isSuccess,error}] = useEditCourseMutation();
-    const { data, refetch } = useGetAllCoursesQuery(
-        {},
-        { refetchOnMountOrArgChange: true }
-      );
-    
-      const editCourseData = data && data.courses.find((i:any) => i._id === id);
-      
+const EditCourse: FC<Props> = ({ id }) => {
+  const [editCourse, { isSuccess, error }] = useEditCourseMutation();
+  const [dataCourse, setDataCourse] = useState<any>(null);
+  const router = useRouter();
+
+  const token = getCookie("token");
+  const { data, refetch } = useGetAllCoursesQuery(
+    {},
+    { refetchOnMountOrArgChange: true }
+  );
+
+  useEffect(() => {
+    allCourses();
+  }, []);
+
+  const allCourses = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}get-admin-courses`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("Get Courses All", response);
+        setDataCourse(response.data);
+      })
+      .catch((error) => {
+        console.log("Get Courses All  ERROR", error.response.data.message);
+      });
+  };
+
+  const editCourseData =
+    dataCourse && dataCourse.courses.find((i: any) => i._id === id);
+
   useEffect(() => {
     if (isSuccess) {
       toast.success("Course Updated successfully");
@@ -35,7 +67,6 @@ const EditCourse:FC<Props> = ({id}) => {
     }
   }, [isSuccess, error]);
 
-
   const [active, setActive] = useState(0);
 
   useEffect(() => {
@@ -47,27 +78,26 @@ const EditCourse:FC<Props> = ({id}) => {
         estimatedPrice: editCourseData?.estimatedPrice,
         tags: editCourseData.tags,
         level: editCourseData.level,
-        categories:editCourseData.categories,
+        categories: editCourseData.categories,
         demoUrl: editCourseData.demoUrl,
         thumbnail: editCourseData?.thumbnail?.url,
-      })
+      });
       setBenefits(editCourseData.benefits);
       setPrerequisites(editCourseData.prerequisites);
       setCourseContentData(editCourseData.courseData);
     }
   }, [editCourseData]);
 
-
   const [courseInfo, setCourseInfo] = useState({
     name: "",
-    description:  "",
-    price:  "",
-    estimatedPrice:  "",
+    description: "",
+    price: "",
+    estimatedPrice: "",
     tags: "",
-    level:  "",
-    categories:"",
-    demoUrl:  "",
-    thumbnail:  "",
+    level: "",
+    categories: "",
+    demoUrl: "",
+    thumbnail: "",
   });
   const [benefits, setBenefits] = useState([{ title: "" }]);
   const [prerequisites, setPrerequisites] = useState([{ title: "" }]);
@@ -88,7 +118,6 @@ const EditCourse:FC<Props> = ({id}) => {
   ]);
 
   const [courseData, setCourseData] = useState({});
-
 
   const handleSubmit = async () => {
     // Format benefits array
@@ -135,11 +164,30 @@ const EditCourse:FC<Props> = ({id}) => {
     setCourseData(data);
   };
 
-
   const handleCourseCreate = async (e: any) => {
     const data = courseData;
-    await editCourse({id:editCourseData?._id,data});
+
+    const courseUpdate = await axios({
+      method: "PUT",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}/edit-course/${editCourseData?._id}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: data,
+    })
+      .then((response) => {
+        console.log("Update Course ", response);
+        toast.success("Course Updated successfully");
+        router.push("/admin/courses")
+        // redirect("/admin/courses");
+      })
+      .catch((error) => {
+        console.log("Update Course ERROR", error.response.data.message);
+        toast.error(error.response.data.message);
+      });
   };
+
+  // await editCourse({ id: editCourseData?._id, data });
 
   return (
     <div className="w-full flex min-h-screen">
@@ -185,7 +233,7 @@ const EditCourse:FC<Props> = ({id}) => {
         )}
       </div>
       <div className="w-[20%] mt-[100px] h-screen fixed z-[-1] top-18 right-0">
-        <CourseOptions active={active} setActive={setActive}  />
+        <CourseOptions active={active} setActive={setActive} />
       </div>
     </div>
   );

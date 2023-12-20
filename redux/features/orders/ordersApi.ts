@@ -30,7 +30,7 @@ export const ordersApi = apiSlice.injectEndpoints({
       query: ({ courseId, payment_info }) => ({
         url: "create-order",
         body: {
-          courseId,
+          courseId, 
           payment_info,
         },
         method: "POST",

@@ -139,7 +139,7 @@ const Sidebar = () => {
                   alt="profile-user"
                   width={100}
                   height={100}
-                  src={user.avatar ? user.avatar.url : avatarDefault}
+                  src={user?.avatar ? user?.avatar?.url : avatarDefault}
                   style={{
                     cursor: "pointer",
                     borderRadius: "50%",
@@ -229,15 +229,15 @@ const Sidebar = () => {
               {!isCollapsed && "Customization"}
             </Typography>
             <Item
-              title="Hero"
-              to="/admin/hero"
+              title="Withdrawl"
+              to="/admin/withdrawl"
               icon={<WebIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="FAQ"
-              to="/admin/faq"
+              title="Recharge"
+              to="/admin/recharge"
               icon={<QuizIcon />}
               selected={selected}
               setSelected={setSelected}

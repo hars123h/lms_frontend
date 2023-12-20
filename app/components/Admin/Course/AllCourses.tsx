@@ -13,6 +13,8 @@ import { format } from "timeago.js";
 import { styles } from "@/app/style/style";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
+import axios from "axios";
+import { getCookie } from "@/app/helper/auth";
 
 type Props = {};
 
@@ -20,11 +22,34 @@ const AllCourses = (props: Props) => {
   const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const [courseId, setCourseId] = useState("");
+  const token = getCookie("token");
+  const [dataCourse, setDataCourse] = useState<any>(null);
   const { isLoading, data, refetch } = useGetAllCoursesQuery(
     {},
     { refetchOnMountOrArgChange: true }
   );
   const [deleteCourse, { isSuccess, error }] = useDeleteCourseMutation({});
+
+  useEffect(() => {
+    allCourses()
+  }, [open])
+
+  const allCourses = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}get-admin-courses`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("Get Courses All", response);
+        setDataCourse(response.data);
+      })
+      .catch((error) => {
+        console.log("Get Courses All  ERROR", error.response.data.message);
+      });
+  };
   const columns = [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "title", headerName: "Course Title", flex: 1 },
@@ -72,8 +97,8 @@ const AllCourses = (props: Props) => {
   const rows: any = [];
 
   {
-    data &&
-      data.courses.forEach((item: any) => {
+    dataCourse &&
+    dataCourse.courses.forEach((item: any) => {
         rows.push({
           id: item._id,
           title: item.name,
@@ -85,23 +110,42 @@ const AllCourses = (props: Props) => {
       });
   }
 
-  useEffect(() => {
-    if (isSuccess) {
-      setOpen(false);
-      refetch();
-      toast.success("Course Deleted Successfully");
-    }
-    if (error) {
-      if ("data" in error) {
-        const errorMessage = error as any;
-        toast.error(errorMessage.data.message);
-      }
-    }
-  }, [isSuccess, error, refetch]);
+  // useEffect(() => {
+  //   if (isSuccess) {
+  //     setOpen(false);
+  //     refetch();
+  //     toast.success("Course Deleted Successfully");
+  //   }
+  //   if (error) {
+  //     if ("data" in error) {
+  //       const errorMessage = error as any;
+  //       toast.error(errorMessage.data.message);
+  //     }
+  //   }
+  // }, [isSuccess, error, refetch]);
 
   const handleDelete = async () => {
     const id = courseId;
-    await deleteCourse(id);
+
+    axios({
+      method: "DELETE",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}delete-course/${id}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("Delete Course", response);
+        toast.success("Course Created  successfully!");
+        setOpen(false);
+        // setDataUser(response.data);
+      })
+      .catch((error) => {
+        console.log("Get User All  ERROR", error.response.data.message);
+      });
+
+
+    // await deleteCourse(id);
   };
 
   return (

@@ -5,11 +5,8 @@ import React, { FC, useState, useEffect } from "react";
 import Login from "../Auth/Login";
 import Register from "../Auth/Register";
 import Verification from "../Auth/Verification";
-import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
 import { useSession } from "next-auth/react";
 import { useLogOutQuery } from "@/redux/features/auth/authApi";
-
-
 
 type Props = {
   authVerify: boolean;
@@ -18,6 +15,8 @@ type Props = {
   setAuthActive: (open: boolean) => void;
   authLogin: boolean;
   setAuthLogin: (open: boolean) => void;
+  token: string;
+  setToken: (token: string) => void;
 };
 
 const Auth: FC<Props> = ({
@@ -27,6 +26,8 @@ const Auth: FC<Props> = ({
   setAuthActive,
   authLogin,
   setAuthLogin,
+  token,
+  setToken,
 }) => {
   const [logout, setLogout] = useState(false);
 
@@ -40,36 +41,7 @@ const Auth: FC<Props> = ({
     setAuthLogin(true);
     setAuthVerify(false);
   };
-  // const {data:userData,isLoading} = useLoadUserQuery(undefined,{});
-  const {
-    data: userData,
-    isLoading,
-    refetch,
-  } = useLoadUserQuery(undefined, {});
 
-  const { data } = useSession();
-
-  const {} = useLogOutQuery(undefined, {
-    skip: !logout ? true : false,
-  });
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (!userData) {
-        if (data) {
-          refetch();
-        }
-      }
-      if (data === null) {
-        // if (isSuccess) {
-        //   toast.success("Login Successfully");
-        // }
-      }
-      if (data === null && !isLoading && !userData) {
-        setLogout(true);
-      }
-    }
-  }, [data, userData, isLoading]);
   return (
     <>
       <div className="container mx-auto ">
@@ -119,6 +91,8 @@ const Auth: FC<Props> = ({
                 setAuthActive={setAuthActive}
                 authLogin={authLogin}
                 setAuthLogin={setAuthLogin}
+                token={token}
+                setToken={setToken}
               />
             )}
             {authActive && (
@@ -130,11 +104,13 @@ const Auth: FC<Props> = ({
                   setAuthActive={setAuthActive}
                   authLogin={authLogin}
                   setAuthLogin={setAuthLogin}
+                  token={token}
+                  setToken={setToken}
                 />
               </>
             )}
 
-            {authLogin && <Login refetch={refetch} />}
+            {authLogin && <Login />}
           </div>
         </div>
       </div>

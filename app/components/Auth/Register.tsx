@@ -6,6 +6,7 @@ import { log } from "console";
 import { toast } from "react-hot-toast";
 import { styles } from "@/app/style/style";
 import { useRegisterMutation } from "@/redux/features/auth/authApi";
+import axios from "axios";
 
 type Props = {
   authVerify: boolean;
@@ -14,6 +15,8 @@ type Props = {
   setAuthActive: (open: boolean) => void;
   authLogin: boolean;
   setAuthLogin: (open: boolean) => void;
+  token:string;
+  setToken:(token: string) => void;
 };
 
 const schema = Yup.object().shape({
@@ -31,24 +34,26 @@ const Register: FC<Props> = ({
   setAuthActive,
   authLogin,
   setAuthLogin,
+  token,
+  setToken,
 }) => {
   const [register, { data, error, isSuccess }] = useRegisterMutation();
 
-  useEffect(() => {
-    if (isSuccess) {
-      const message = data?.message || "Registration successful";
-      toast.success(message);
-      setAuthActive(false);
-      setAuthLogin(false);
-      setAuthVerify(true);
-    }
-    if (error) {
-      if ("data" in error) {
-        const errorData = error as any;
-        toast.error(errorData.data.message);
-      }
-    }
-  }, [isSuccess, error]);
+  // useEffect(() => {
+  //   if (isSuccess) {
+  //     const message = data?.message || "Registration successful";
+  //     toast.success(message);
+  //     setAuthActive(false);
+  //     setAuthLogin(false);
+  //     setAuthVerify(true);
+  //   }
+  //   if (error) {
+  //     if ("data" in error) {
+  //       const errorData = error as any;
+  //       toast.error(errorData.data.message);
+  //     }
+  //   }
+  // }, [isSuccess, error]);
 
   const formik = useFormik({
     initialValues: { name: "", email: "", password: "" },
@@ -59,7 +64,27 @@ const Register: FC<Props> = ({
         email,
         password,
       };
-      await register(data);
+
+      axios({
+        method: "POST",
+        url: `${process.env.NEXT_PUBLIC_SERVER_URI}registration`,
+        data: {name, email, password },
+      })
+        .then((response) => {
+             console.log("Registration SUCCESS", response);
+              // save the response (user, token) localstorage/cookie
+              toast.success("Registration  Successfull!");
+              setToken(response?.data?.activationToken)
+              setAuthActive(false);
+              setAuthLogin(false);
+              setAuthVerify(true);
+            // redirect("/profile");
+        })
+        .catch((error) => {
+          console.log("Registration ERROR", error.response.data.message);
+          toast.error(error.response.data.message);
+        });
+      // await register(data);
     },
   });
 

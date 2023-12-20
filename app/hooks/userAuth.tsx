@@ -1,11 +1,7 @@
-import { useSelector } from "react-redux";
+import { isAuth } from "../helper/auth";
 
 export default function UserAuth() {
-  const { user } = useSelector((state: any) => state.auth);
-  console.log("User Checking", user);
-  
-  
-  if (user) {
+  if (isAuth()) {
     return true;
   } else {
     return false;

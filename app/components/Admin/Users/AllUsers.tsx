@@ -12,6 +12,8 @@ import {
 } from "@/redux/features/user/userApi";
 import { styles } from "@/app/style/style";
 import { toast } from "react-hot-toast";
+import axios from 'axios';
+import { getCookie } from "@/app/helper/auth";
 
 type Props = {
   isTeam?: boolean;
@@ -23,41 +25,64 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("admin");
   const [open, setOpen] = useState(false);
+  const token = getCookie("token");
+  const [dataUser, setDataUser] = useState<any>(null);
   const [userId, setUserId] = useState("");
   const [updateUserRole, { error: updateError, isSuccess }] =
     useUpdateUserRoleMutation();
-  const { isLoading, data, refetch } = useGetAllUsersQuery(
-    {},
-    { refetchOnMountOrArgChange: true }
-  );
+  // const { isLoading, data, refetch } = useGetAllUsersQuery(
+  //   {},
+  //   { refetchOnMountOrArgChange: true }
+  // );
   const [deleteUser, { isSuccess: deleteSuccess, error: deleteError }] =
     useDeleteUserMutation({});
 
-  useEffect(() => {
-    if (updateError) {
-      if ("data" in updateError) {
-        const errorMessage = updateError as any;
-        toast.error(errorMessage.data.message);
-      }
-    }
+  // useEffect(() => {
+  //   if (updateError) {
+  //     if ("data" in updateError) {
+  //       const errorMessage = updateError as any;
+  //       toast.error(errorMessage.data.message);
+  //     }
+  //   }
 
-    if (isSuccess) {
-      refetch();
-      toast.success("User role updated successfully");
-      setActive(false);
-    }
-    if (deleteSuccess) {
-      refetch();
-      toast.success("Delete user successfully!");
-      setOpen(false);
-    }
-    if (deleteError) {
-      if ("data" in deleteError) {
-        const errorMessage = deleteError as any;
-        toast.error(errorMessage.data.message);
-      }
-    }
-  }, [updateError, isSuccess, deleteSuccess, deleteError]);
+  //   if (isSuccess) {
+  //     refetch();
+  //     toast.success("User role updated successfully");
+  //     setActive(false);
+  //   }
+  //   if (deleteSuccess) {
+  //     refetch();
+  //     toast.success("Delete user successfully!");
+  //     setOpen(false);
+  //   }
+  //   if (deleteError) {
+  //     if ("data" in deleteError) {
+  //       const errorMessage = deleteError as any;
+  //       toast.error(errorMessage.data.message);
+  //     }
+  //   }
+  // }, [updateError, isSuccess, deleteSuccess, deleteError]);
+  useEffect(() => {
+    allUser()
+  }, [open])
+
+  const allUser = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}get-users`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("Get Users All", response);
+        setDataUser(response.data);
+      })
+      .catch((error) => {
+        console.log("Get User All  ERROR", error.response.data.message);
+      });
+  };
+
 
   const columns = [
     { field: "id", headerName: "ID", flex: 0.3 },
@@ -108,7 +133,7 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
 
   if (isTeam) {
     const newData =
-      data && data.users.filter((item: any) => item.role === "admin");
+      dataUser && dataUser?.users?.filter((item: any) => item.role === "admin");
 
     newData &&
       newData.forEach((item: any) => {
@@ -122,8 +147,8 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
         });
       });
   } else {
-    data &&
-      data.users.forEach((item: any) => {
+    dataUser &&
+    dataUser?.users?.forEach((item: any) => {
         rows.push({
           id: item._id,
           name: item.name,
@@ -141,12 +166,29 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
 
   const handleDelete = async () => {
     const id = userId;
-    await deleteUser(id);
+    // await deleteUser(id);
+    axios({
+      method: "DELETE",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}delete-user/${id}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("Delete User", response);
+        toast.success("Delete user successfully!");
+        setOpen(false);
+        // setDataUser(response.data);
+      })
+      .catch((error) => {
+        console.log("Get User All  ERROR", error.response.data.message);
+      });
+
   };
 
   return (
     <div className="mt-[120px]">
-      {isLoading ? (
+      {!dataUser ? (
         <Loader />
       ) : (
         <Box m="20px">

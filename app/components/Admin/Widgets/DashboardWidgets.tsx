@@ -5,10 +5,12 @@ import { PiUsersFourLight } from "react-icons/pi";
 import { Box, CircularProgress } from "@mui/material";
 import OrdersAnalytics from "../Analytics/OrdersAnalytics";
 import AllInvoices from "../Order/AllInvoices";
+import axios from "axios";
 import {
   useGetOrdersAnalyticsQuery,
   useGetUsersAnalyticsQuery,
 } from "@/redux/features/analytics/analyticsApi";
+import { getCookie } from "@/app/helper/auth";
 
 type Props = {
   open?: boolean;
@@ -45,10 +47,14 @@ const CircularProgressWithLabel: FC<Props> = ({ open, value }) => {
 const DashboardWidgets: FC<Props> = ({ open }) => {
   const [ordersComparePercentage, setOrdersComparePercentage] = useState<any>();
   const [userComparePercentage, setuserComparePercentage] = useState<any>();
+  const [analyticsUser, setAnalyticsUser] = useState<any>(null);
+  const [analyticsOrder, setAnalyticsOrder] = useState<any>(null);
+
 
   const { data, isLoading } = useGetUsersAnalyticsQuery({});
   const { data: ordersData, isLoading: ordersLoading } =
     useGetOrdersAnalyticsQuery({});
+  const token = getCookie("token");
 
   useEffect(() => {
     if (isLoading && ordersLoading) {
@@ -67,13 +73,19 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
           const ordersCurrentMonth = ordersLastTwoMonths[1].count;
           const ordersPreviousMonth = ordersLastTwoMonths[0].count;
 
-          const usersPercentChange = usersPreviousMonth !== 0 ?
-            ((usersCurrentMonth - usersPreviousMonth) / usersPreviousMonth) *
-            100 : 100;
+          const usersPercentChange =
+            usersPreviousMonth !== 0
+              ? ((usersCurrentMonth - usersPreviousMonth) /
+                  usersPreviousMonth) *
+                100
+              : 100;
 
-          const ordersPercentChange = ordersPreviousMonth !== 0 ?
-            ((ordersCurrentMonth - ordersPreviousMonth) / ordersPreviousMonth) *
-            100 : 100;
+          const ordersPercentChange =
+            ordersPreviousMonth !== 0
+              ? ((ordersCurrentMonth - ordersPreviousMonth) /
+                  ordersPreviousMonth) *
+                100
+              : 100;
 
           setuserComparePercentage({
             currentMonth: usersCurrentMonth,
@@ -90,6 +102,84 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
       }
     }
   }, [isLoading, ordersLoading, data, ordersData]);
+
+
+
+  const userAnalytics = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}get-users-analytics`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("Get User Analytics", response);
+        setAnalyticsUser(response.data);
+      })
+      .catch((error) => {
+        console.log("Get User Analytics  ERROR", error.response.data.message);
+      });
+  };
+
+  const orderAnalytics = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}get-orders-analytics`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("Get Order Analytics", response);
+        setAnalyticsOrder(response.data);
+      })
+      .catch((error) => {
+        console.log("Get Order Analytics  ERROR", error.response.data.message);
+      });
+  };
+
+  useEffect(() => {
+    userAnalytics();
+    orderAnalytics();
+
+    if (analyticsUser && analyticsOrder) {
+      const usersLastTwoMonths = analyticsUser.users.last12Months.slice(-2);
+      const ordersLastTwoMonths = analyticsOrder.orders.last12Months.slice(-2);
+
+      if (usersLastTwoMonths.length === 2 && ordersLastTwoMonths.length === 2) {
+        const usersCurrentMonth = usersLastTwoMonths[1].count;
+        const usersPreviousMonth = usersLastTwoMonths[0].count;
+        const ordersCurrentMonth = ordersLastTwoMonths[1].count;
+        const ordersPreviousMonth = ordersLastTwoMonths[0].count;
+
+        const usersPercentChange =
+          usersPreviousMonth !== 0
+            ? ((usersCurrentMonth - usersPreviousMonth) / usersPreviousMonth) *
+              100
+            : 100;
+
+        const ordersPercentChange =
+          ordersPreviousMonth !== 0
+            ? ((ordersCurrentMonth - ordersPreviousMonth) /
+                ordersPreviousMonth) *
+              100
+            : 100;
+
+        setuserComparePercentage({
+          currentMonth: usersCurrentMonth,
+          previousMonth: usersPreviousMonth,
+          percentChange: usersPercentChange,
+        });
+
+        setOrdersComparePercentage({
+          currentMonth: ordersCurrentMonth,
+          previousMonth: ordersPreviousMonth,
+          percentChange: ordersPercentChange,
+        });
+      }
+    }
+  }, [analyticsUser, analyticsOrder]);
 
   return (
     <div className="mt-[30px] min-h-screen">
@@ -111,17 +201,16 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
                 </h5>
               </div>
               <div>
-                <CircularProgressWithLabel value={
-                  ordersComparePercentage?.percentChange > 0 
-                  ? 100 
-                  : 0
-                } open={open} />
+                <CircularProgressWithLabel
+                  value={ordersComparePercentage?.percentChange > 0 ? 100 : 0}
+                  open={open}
+                />
                 <h5 className="text-center pt-4">
-                 {
-                  ordersComparePercentage?.percentChange > 0 
-                  ? "+" + ordersComparePercentage?.percentChange.toFixed(2)
-                  : "-" + ordersComparePercentage?.percentChange.toFixed(2)
-                 } %
+                  {ordersComparePercentage?.percentChange > 0
+                    ? "+" + ordersComparePercentage?.percentChange.toFixed(2)
+                    : "-" +
+                      ordersComparePercentage?.percentChange.toFixed(2)}{" "}
+                  %
                 </h5>
               </div>
             </div>
@@ -139,15 +228,16 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
                 </h5>
               </div>
               <div>
-                <CircularProgressWithLabel value={
-                  userComparePercentage?.percentChange > 0 
-                  ? 100 
-                  : 0
-                } open={open} />
+                <CircularProgressWithLabel
+                  value={userComparePercentage?.percentChange > 0 ? 100 : 0}
+                  open={open}
+                />
                 <h5 className="text-center pt-4">
                   {userComparePercentage?.percentChange > 0
-                    ? "+" + userComparePercentage?.percentChange.toFixed(2) 
-                    : "-" + userComparePercentage?.percentChange.toFixed(2)} %
+                    ? "+" + userComparePercentage?.percentChange.toFixed(2)
+                    : "-" +
+                      userComparePercentage?.percentChange.toFixed(2)}{" "}
+                  %
                 </h5>
               </div>
             </div>

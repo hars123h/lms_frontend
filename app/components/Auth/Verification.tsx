@@ -5,6 +5,7 @@ import { VscWorkspaceTrusted } from "react-icons/vsc";
 import OtpInput from "react-otp-input";
 import { useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
+import axios from "axios";
 
 type Props = {
   authVerify: boolean;
@@ -13,6 +14,8 @@ type Props = {
   setAuthActive: (open: boolean) => void;
   authLogin: boolean;
   setAuthLogin: (open: boolean) => void;
+  token: string;
+  setToken: (token: string) => void;
 };
 
 const Verification: FC<Props> = ({
@@ -22,29 +25,31 @@ const Verification: FC<Props> = ({
   setAuthActive,
   authLogin,
   setAuthLogin,
+  token,
+  setToken,
 }) => {
-  const { token } = useSelector((state: any) => state.auth);
+  // const { token } = useSelector((state: any) => state.auth);
   const [activation, { isSuccess, error }] = useActivationMutation();
   const [invalidError, setInvalidError] = useState<boolean>(false);
   const [otp, setOtp] = useState("");
 
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success("Account activated successfully");
-      setAuthActive(false);
-      setAuthLogin(true);
-      setAuthVerify(false);
-    }
-    if (error) {
-      if ("data" in error) {
-        const errorData = error as any;
-        toast.error(errorData.data.message);
-        setInvalidError(true);
-      } else {
-        console.log("An error occured:", error);
-      }
-    }
-  }, [isSuccess, error]);
+  // useEffect(() => {
+  //   if (isSuccess) {
+  //     toast.success("Account activated successfully");
+  //     setAuthActive(false);
+  //     setAuthLogin(true);
+  //     setAuthVerify(false);
+  //   }
+  //   if (error) {
+  //     if ("data" in error) {
+  //       const errorData = error as any;
+  //       toast.error(errorData.data.message);
+  //       setInvalidError(true);
+  //     } else {
+  //       console.log("An error occured:", error);
+  //     }
+  //   }
+  // }, [isSuccess, error]);
 
   //   const verificationHandler = async () => {
   //     const verificationNumber = Object.values(verifyNumber).join("");
@@ -58,12 +63,37 @@ const Verification: FC<Props> = ({
   //     // });
   //   };
   const verificationHandler = async () => {
-    await activation({
+    if (!token) {
+      return toast.error("token is not Set Please Try Again");
+    }
+    if (!otp) {
+      return toast.error("Please Enter the Otp");
+    }
+    axios({
+      method: "POST",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}activate-user`,
+      data: {
         activation_token: token,
         activation_code: otp,
+      },
+    })
+      .then((response) => {
+        console.log("Activation SUCCESS", response);
+        toast.success("Account activated successfully");
+        setAuthActive(false);
+        setAuthLogin(true);
+        setAuthVerify(false);
+      })
+      .catch((error) => {
+        console.log("User Activation ERROR", error.response.data.message);
+        toast.error(error.response.data.message);
       });
-    
-  }
+
+    // await activation({
+    //     activation_token: token,
+    //     activation_code: otp,
+    //   });
+  };
 
   return (
     <>
@@ -81,9 +111,9 @@ const Verification: FC<Props> = ({
           renderInput={(props) => <input {...props} />}
         />
 
-        <button 
-        className=" mt-[50px] loginbtnBg w-full text-[#fff] pt-[16px] pb-[12px] pr-[40px] pl-[40px] rounded-lg transition duration-500 font-[600] font-Josefin text-[16px]"
-        onClick={verificationHandler}
+        <button
+          className=" mt-[50px] loginbtnBg w-full text-[#fff] pt-[16px] pb-[12px] pr-[40px] pl-[40px] rounded-lg transition duration-500 font-[600] font-Josefin text-[16px]"
+          onClick={verificationHandler}
         >
           Verify
         </button>

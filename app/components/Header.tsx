@@ -26,30 +26,22 @@ const Header: FC<Props> = ({ activeItem, setOpen, route, open, setRoute }) => {
     refetch,
   } = useLoadUserQuery(undefined, {});
 
-  const { data } = useSession();
+  // const { data } = useSession();
 
   const {} = useLogOutQuery(undefined, {
     skip: !logout ? true : false,
   });
 
-  useEffect(() => {
-    if (!isLoading) {
-      if (!userData) {
-        if (data) {
-          
-          refetch();
-        }
-      }
-      if (data === null) {
-        // if (isSuccess) {
-        //   toast.success("Login Successfully");
-        // }
-      }
-      if (data === null && !isLoading && !userData) {
-        setLogout(true);
-      }
-    }
-  }, [data, userData, isLoading]);
+  // useEffect(() => {
+  //   if (!isLoading) {
+  //     if (!userData) {
+  //       refetch();
+  //     }
+  //     if (!isLoading && !userData) {
+  //       setLogout(true);
+  //     }
+  //   }
+  // }, [userData, isLoading]);
 
   const handleClose = (e: any) => {
     if (e.target.id === "screen") {

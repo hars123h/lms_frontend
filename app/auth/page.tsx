@@ -1,8 +1,12 @@
 "use client";
-import React, { FC, useState } from "react";
+import React, { FC, useState, useEffect } from "react";
 import Heading from "../utils/Heading";
 import Header from "../components/Header";
 import Auth from "../components/Route/Auth";
+import { redirect } from "next/navigation";
+
+import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
+
 
 interface Props {}
 const Page: FC<Props> = (props) => {
@@ -12,6 +16,17 @@ const Page: FC<Props> = (props) => {
   const [authVerify, setAuthVerify] =useState(false)
   const [authActive, setAuthActive] = useState(true);
   const [authLogin, setAuthLogin] = useState(false);
+  const [token, setToken] = useState("");
+  const {data:userData,isLoading,refetch} = useLoadUserQuery(undefined,{});
+
+
+  useEffect(() => {
+    if(userData) {
+      redirect("/")
+    }
+
+  }, [])
+  
   return (
     <>
       <Heading
@@ -33,6 +48,8 @@ const Page: FC<Props> = (props) => {
        setAuthActive={setAuthActive}
        authLogin={authLogin}
        setAuthLogin={setAuthLogin}
+       token={token}
+       setToken={setToken}
       
       />
       {/* <Hero /> */}

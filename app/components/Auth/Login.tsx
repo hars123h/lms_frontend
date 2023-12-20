@@ -2,15 +2,16 @@
 import React, { FC, useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { log } from "console";
+import { redirect } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
 import { useLoginMutation } from "@/redux/features/auth/authApi";
 import { styles } from "@/app/style/style";
+import { useSelector } from "react-redux";
+import axios from "axios";
+import { authenticate } from "@/app/helper/auth";
 
-type Props = {
-  refetch:any;
-};
-
+type Props = {};
 
 const schema = Yup.object().shape({
   email: Yup.string()
@@ -19,27 +20,45 @@ const schema = Yup.object().shape({
   password: Yup.string().required("Please enter your password!").min(6),
 });
 
-const Login: FC<Props> = ({refetch}) => {
-  const [login, { isSuccess, error }] = useLoginMutation();
+const Login: FC<Props> = () => {
+  const [login, { data: commingData, isSuccess, error }] = useLoginMutation();
+  const { data } = useSession();
 
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success("Login Successfully!");
-      refetch();
-    }
-    if (error) {
-      if ("data" in error) {
-        const errorData = error as any;
-        toast.error(errorData.data.message);
-      }
-    }
-  }, [isSuccess, error]);
+  // useEffect(() => {
+  //   if (isSuccess) {
+  //     toast.success("Login Successfully!");
+  //     redirect("/profile");
+  //   }
+  //   if (error) {
+  //     if ("data" in error) {
+  //       const errorData = error as any;
+  //       toast.error(errorData.data.message);
+  //     }
+  //   }
+  // }, [isSuccess, error, commingData]);
 
   const formik = useFormik({
     initialValues: { email: "", password: "" },
     validationSchema: schema,
     onSubmit: async ({ email, password }) => {
-      await login({ email, password });
+      axios({
+        method: "POST",
+        url: `${process.env.NEXT_PUBLIC_SERVER_URI}login`,
+        data: { email, password },
+      })
+        .then((response) => {
+          console.log("SIGNIN SUCCESS", response);
+          // save the response (user, token) localstorage/cookie
+          authenticate(response, () => {
+            toast.success("Login Successfully!");
+            // redirect("/profile");
+          });
+        })
+        .catch((error) => {
+          console.log("SIGNIN ERROR", error.response.data.message);
+          toast.error(error.response.data.message);
+        });
+      // await login({ email, password });
     },
   });
 
@@ -72,7 +91,7 @@ const Login: FC<Props> = ({refetch}) => {
               type="Password"
               name=""
               value={values.password}
-               onChange={handleChange}
+              onChange={handleChange}
               id="password"
               placeholder="Password"
               className={`${
@@ -84,9 +103,7 @@ const Login: FC<Props> = ({refetch}) => {
             )}
           </div>
 
-          <button className={`${styles.button} w-full`}>
-            Login Now
-          </button>
+          <button className={`${styles.button} w-full`}>Login Now</button>
         </div>
       </form>
     </>

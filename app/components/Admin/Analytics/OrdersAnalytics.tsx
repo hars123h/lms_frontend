@@ -1,6 +1,6 @@
 import { styles } from "@/app/style/style";
 import { useGetOrdersAnalyticsQuery } from "@/redux/features/analytics/analyticsApi";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -12,6 +12,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Loader from "../../Loader/Loader";
+import axios from "axios";
+import { getCookie } from "@/app/helper/auth";
 
 // const analyticsData = [
 //   {
@@ -49,18 +51,42 @@ type Props = {
 };
 
 export default function OrdersAnalytics({ isDashboard }: Props) {
-  const {data, isLoading } = useGetOrdersAnalyticsQuery({});
+  // const {data, isLoading } = useGetOrdersAnalyticsQuery({});
+  const [orderData, setOrderData] = useState<any>(null);
+  const token = getCookie("token");
+
+  useEffect(() => {
+    orderAnalytics()
+  }, [])
+
+  const orderAnalytics = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}get-orders-analytics`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("Get Order Analytics", response);
+        setOrderData(response.data);
+      })
+      .catch((error) => {
+        console.log("Get Order Analytics  ERROR", error.response.data.message);
+      });
+  };
+
 
   const analyticsData: any = [];
 
-  data &&
-    data.orders.last12Months.forEach((item: any) => {
+  orderData &&
+  orderData?.orders?.last12Months?.forEach((item: any) => {
       analyticsData.push({ name: item.name, Count: item.count });
     });
 
   return (
     <>
-      {isLoading ? (
+      {!orderData ? (
         <Loader />
       ) : (
         <div className={isDashboard ? "h-[30vh]" : "h-screen"}>

@@ -18,6 +18,7 @@ export const userApi = apiSlice.injectEndpoints({
           name,
         },
         credentials: "include" as const,
+        
       }),
     }),
     updatePassword: builder.mutation({

@@ -5,29 +5,32 @@ import CourseOptions from "./CourseOptions";
 import CourseData from "./CourseData";
 import CourseContent from "./CourseContent";
 import CoursePreview from "./CoursePreview";
-import { useCreateCourseMutation } from "../../../../redux/features/courses/coursesApi";
+// import { useCreateCourseMutation } from "../../../../redux/features/courses/coursesApi";
 import { toast } from "react-hot-toast";
 import { redirect } from "next/navigation";
-
+import axios from "axios";
+import { getCookie } from "@/app/helper/auth";
 
 type Props = {};
 
 const CreateCourse = (props: Props) => {
-  const [createCourse, { isLoading, isSuccess, error }] =
-    useCreateCourseMutation();
+  // const [createCourse, { isLoading, isSuccess, error }] =
+  //   useCreateCourseMutation();
 
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success("Course created successfully");
-      redirect("/admin/courses");
-    }
-    if (error) {
-      if ("data" in error) {
-        const errorMessage = error as any;
-        toast.error(errorMessage.data.message);
-      }
-    }
-  }, [isSuccess, error]);
+  const token = getCookie("token");
+
+  // useEffect(() => {
+  //   if (isSuccess) {
+  //     toast.success("Course created successfully");
+  //     redirect("/admin/courses");
+  //   }
+  //   if (error) {
+  //     if ("data" in error) {
+  //       const errorMessage = error as any;
+  //       toast.error(errorMessage.data.message);
+  //     }
+  //   }
+  // }, [isSuccess, error]);
 
   const [active, setActive] = useState(0);
   const [courseInfo, setCourseInfo] = useState({
@@ -37,16 +40,16 @@ const CreateCourse = (props: Props) => {
     estimatedPrice: "",
     tags: "",
     level: "",
-    categories:"",
+    categories: "",
     demoUrl: "",
     thumbnail: "",
   });
   const [benefits, setBenefits] = useState([{ title: "" }]);
   const [prerequisites, setPrerequisites] = useState([
-    { 
-        title: ""
-     }
-]);
+    {
+      title: "",
+    },
+  ]);
   const [courseContentData, setCourseContentData] = useState([
     {
       videoUrl: "",
@@ -64,9 +67,7 @@ const CreateCourse = (props: Props) => {
     },
   ]);
 
-
   const [courseData, setCourseData] = useState({});
-
 
   const handleSubmit = async () => {
     // Format benefits array
@@ -115,9 +116,27 @@ const CreateCourse = (props: Props) => {
 
   const handleCourseCreate = async (e: any) => {
     const data = courseData;
-    if (!isLoading) {
-      await createCourse(data);
-    }
+
+    axios({
+      method: "POST",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}create-course`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: data,
+    })
+      .then((response) => {
+        console.log("Create Course Successfull", response);
+        toast.success("Course created successfully");
+        redirect("/admin/courses");
+      })
+      .catch((error) => {
+        console.log("Create Course Error", error.response.data.message);
+        toast.error(error.response.data.message);
+      });
+    // if (!isLoading) {
+    //   await createCourse(data);
+    // }
   };
 
   return (
