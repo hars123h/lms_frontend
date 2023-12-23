@@ -17,6 +17,7 @@ type Props = {
   setAuthLogin: (open: boolean) => void;
   token: string;
   setToken: (token: string) => void;
+  invt_id:any;
 };
 
 const Auth: FC<Props> = ({
@@ -28,6 +29,7 @@ const Auth: FC<Props> = ({
   setAuthLogin,
   token,
   setToken,
+  invt_id
 }) => {
   const [logout, setLogout] = useState(false);
 
@@ -106,6 +108,7 @@ const Auth: FC<Props> = ({
                   setAuthLogin={setAuthLogin}
                   token={token}
                   setToken={setToken}
+                  invt_id={invt_id}
                 />
               </>
             )}

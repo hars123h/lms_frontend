@@ -7,6 +7,10 @@ import { styles } from "../style/style";
 import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
 import { useLogOutQuery } from "@/redux/features/auth/authApi";
 import { useSession } from "next-auth/react";
+import { isAuth } from "../helper/auth";
+import Logo from "../../public/assests/logo.jpg";
+import ProfilePic from "../../public/assests/avatar.png";
+import Image from "next/image";
 
 type Props = {
   open: boolean;
@@ -20,11 +24,11 @@ const Header: FC<Props> = ({ activeItem, setOpen, route, open, setRoute }) => {
   const [active, setActive] = useState(false);
   const [openSidebar, setOpenSidebar] = useState(false);
   const [logout, setLogout] = useState(false);
-  const {
-    data: userData,
-    isLoading,
-    refetch,
-  } = useLoadUserQuery(undefined, {});
+  // const {
+  //   data: userData,
+  //   isLoading,
+  //   refetch,
+  // } = useLoadUserQuery(undefined, {});
 
   // const { data } = useSession();
 
@@ -66,7 +70,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, route, open, setRoute }) => {
                 href={"/"}
                 className={`text-[25px] font-Poppins font-[500] text-black`}
               >
-                ELearning
+                <Image src={Logo.src} width={90} height={60} alt="" />
               </Link>
             </div>
             <div className="flex items-center">
@@ -80,13 +84,21 @@ const Header: FC<Props> = ({ activeItem, setOpen, route, open, setRoute }) => {
                   onClick={() => setOpenSidebar(true)}
                 />
               </div>
-              <div>
-                <Link href="/auth">
-                  <button className={`${styles.button} mb-[10px]`}>
-                    Register
-                  </button>
-                </Link>
-              </div>
+              {isAuth() && (
+                <div className="-mt-[5px] ">
+                  <Link href="/profile">
+                    <Image src={ProfilePic} width={30} height={20} alt="" />
+                  </Link>
+                </div>
+              )}
+              {!isAuth() && (<div>
+                  <Link href="/auth">
+                    <button className={`${styles.button} mb-[10px]`}>
+                      Register
+                    </button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>

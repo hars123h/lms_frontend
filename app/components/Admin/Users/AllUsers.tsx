@@ -2,6 +2,10 @@ import React, { FC, useEffect, useState } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { Box, Button, Modal } from "@mui/material";
 import { AiOutlineDelete, AiOutlineMail } from "react-icons/ai";
+import Link from "next/link";
+
+import { GrView } from "react-icons/gr";
+
 import { useTheme } from "next-themes";
 import Loader from "../../Loader/Loader";
 import { format } from "timeago.js";
@@ -12,7 +16,7 @@ import {
 } from "@/redux/features/user/userApi";
 import { styles } from "@/app/style/style";
 import { toast } from "react-hot-toast";
-import axios from 'axios';
+import axios from "axios";
 import { getCookie } from "@/app/helper/auth";
 
 type Props = {
@@ -28,14 +32,14 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
   const token = getCookie("token");
   const [dataUser, setDataUser] = useState<any>(null);
   const [userId, setUserId] = useState("");
-  const [updateUserRole, { error: updateError, isSuccess }] =
-    useUpdateUserRoleMutation();
+  // const [updateUserRole, { error: updateError, isSuccess }] =
+  //   useUpdateUserRoleMutation();
   // const { isLoading, data, refetch } = useGetAllUsersQuery(
   //   {},
   //   { refetchOnMountOrArgChange: true }
   // );
-  const [deleteUser, { isSuccess: deleteSuccess, error: deleteError }] =
-    useDeleteUserMutation({});
+  // const [deleteUser, { isSuccess: deleteSuccess, error: deleteError }] =
+  //   useDeleteUserMutation({});
 
   // useEffect(() => {
   //   if (updateError) {
@@ -62,9 +66,10 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
   //     }
   //   }
   // }, [updateError, isSuccess, deleteSuccess, deleteError]);
+
   useEffect(() => {
-    allUser()
-  }, [open])
+    allUser();
+  }, [open]);
 
   const allUser = () => {
     axios({
@@ -82,7 +87,6 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
         console.log("Get User All  ERROR", error.response.data.message);
       });
   };
-
 
   const columns = [
     { field: "id", headerName: "ID", flex: 0.3 },
@@ -120,9 +124,11 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
       renderCell: (params: any) => {
         return (
           <>
-            <a href={`mailto:${params.row.email}`}>
-              <AiOutlineMail className="dark:text-white text-black" size={20} />
-            </a>
+            <Link href={`/admin/users/user-details/${params.row.id}`}>
+              <GrView className="dark:text-white text-black" size={20} />
+            </Link>
+            {/* <a href={`mailto:${params.row.email}`}> */}
+            {/* </a> */}
           </>
         );
       },
@@ -148,7 +154,7 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
       });
   } else {
     dataUser &&
-    dataUser?.users?.forEach((item: any) => {
+      dataUser?.users?.forEach((item: any) => {
         rows.push({
           id: item._id,
           name: item.name,
@@ -161,7 +167,7 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
   }
 
   const handleSubmit = async () => {
-    await updateUserRole({ email, role });
+    // await updateUserRole({ email, role });
   };
 
   const handleDelete = async () => {
@@ -183,7 +189,6 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
       .catch((error) => {
         console.log("Get User All  ERROR", error.response.data.message);
       });
-
   };
 
   return (
@@ -254,7 +259,15 @@ const AllCourses: FC<Props> = ({ isTeam }) => {
               },
             }}
           >
-            <DataGrid checkboxSelection rows={rows} columns={columns} />
+            <DataGrid
+              columnVisibilityModel={{
+                // Hide columns status and traderName, the other columns will remain visible
+                id: false,
+              }}
+              rows={rows}
+              columns={columns}
+              className="pl-[25px]"
+            />
           </Box>
           {active && (
             <Modal

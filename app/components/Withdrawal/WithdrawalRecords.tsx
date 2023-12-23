@@ -8,14 +8,14 @@ import Image from "next/image";
 
 import { useGetUserWithdrawalsQuery } from "@/redux/features/withdrawal/withdrawalsApi";
 import { getCookie } from "@/app/helper/auth";
-import axios from 'axios'
+import axios from "axios";
 
 type Props = {};
 
 const WithdrawalRecords: FC<Props> = () => {
   const { isLoading, data, refetch } = useGetUserWithdrawalsQuery({});
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
-  const token = getCookie("token")
+  const token = getCookie("token");
 
   console.log("Withdrawal Data", data);
   // useEffect(() => {
@@ -36,7 +36,7 @@ const WithdrawalRecords: FC<Props> = () => {
     })
       .then((response) => {
         console.log("Get Withdrawal", response);
-        setWithdrawals(response.data.withdrawal)
+        setWithdrawals(response.data.withdrawal);
         // setName(response.data.user.name);
         // const { role, name, email } = response.data;
         // setValues({ ...values, role, name, email });
@@ -67,7 +67,7 @@ const WithdrawalRecords: FC<Props> = () => {
             ₹ <span className="text-[35px] ml-[5px]">50.00</span>
           </div>
 
-          <div className="-mt-[10px] font-[600] font-Josefin text-[#E8E8E8]">
+          <div className="-mt-[10px] font-[600] font-Josefin text-[#E8E8E8]"> 
             Account Payable
           </div> */}
           <div className="absolute bottom-[390px] left-[250px]">
@@ -104,7 +104,11 @@ const WithdrawalRecords: FC<Props> = () => {
                     ) : (
                       ""
                     )}
-
+                    {item?.status === "Declined" ? (
+                      <p className="text-[red]">{item?.status}</p>
+                    ) : (
+                      ""
+                    )}
                     <p>₹ {item?.withdrawalAmount}</p>
                   </div>
 

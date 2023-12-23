@@ -5,19 +5,44 @@ import CourseOne from "../../../public/assests/course1.jpg";
 import TeacherImage from "../../../public/assests/teacher.jpg";
 import CourseCard from "./CourseCard";
 import { useGetUsersAllCoursesQuery } from "@/redux/features/courses/coursesApi";
+import axios from "axios";
+import { getCookie } from "@/app/helper/auth";
 
 type Props = {
  
 };
 
 const CourseContent: FC<Props> = ({}) => {
-  const { data, isLoading } = useGetUsersAllCoursesQuery({});
+  // const { data, isLoading } = useGetUsersAllCoursesQuery({});
   const [courses, setCourses] = useState<any[]>([]);
+  const token = getCookie("token");
+
+  // useEffect(() => {
+  //   setCourses(data?.courses);
+  //   console.log("Courses", data?.courses);
+  // }, [data]);
 
   useEffect(() => {
-    setCourses(data?.courses);
-    console.log("Courses", data?.courses);
-  }, [data]);
+    loadCourses();
+  }, []);
+
+  const loadCourses = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}get-courses`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("All Courses", response);
+        setCourses(response.data.courses);
+      })
+      .catch((error) => {
+        console.log("All Courses Error ", error.response.data.message);
+      });
+  };
+
   return (
     <>
       <div className="flex justify-center items-center flex-col font-Josefin mt-[70px] ">

@@ -11,7 +11,6 @@ import axios from "axios";
 import { getCookie, updateUser } from "@/app/helper/auth";
 import { useRouter } from "next/navigation";
 
-
 type Props = {
   user: any;
 };
@@ -19,6 +18,11 @@ type Props = {
 const PersonalData: FC<Props> = ({ user }) => {
   const [avatar, setAvatar] = useState(null);
   const [name, setName] = useState("");
+  const [whatsappNo, setWhatsappNo] = useState("");
+  const [teleId, setTeleId] = useState("");
+  const [profession, setProfession] = useState("");
+  const [dob, setDOB] = useState("")
+
   const [dataUser, setDataUser] = useState<any>(null);
   const [check, setCheck] = useState(false);
   const [loadUser, setLoadUser] = useState(false);
@@ -41,6 +45,11 @@ const PersonalData: FC<Props> = ({ user }) => {
         console.log("PRIVATE PROFILE UPDATE", response);
         setDataUser(response.data.user);
         setName(response.data.user.name);
+        setWhatsappNo(response.data.user.whatsappNo);
+        setTeleId(response.data.user.teleId);
+        setDOB(response.data.user.dob);
+        setProfession(response.data.user.profession);
+
 
         // const { role, name, email } = response.data;
         // setValues({ ...values, role, name, email });
@@ -71,7 +80,13 @@ const PersonalData: FC<Props> = ({ user }) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        data: { name: name },
+        data: { 
+          name: name,
+          whatsappNo,
+          teleId,
+          dob,
+          profession
+        },
       })
         .then((response) => {
           console.log("Profile Data  UPDATE SUCCESS", response);
@@ -197,31 +212,68 @@ const PersonalData: FC<Props> = ({ user }) => {
 
               <div>
                 <label htmlFor="" className={`${styles.label}`}>
-                  LinkedIn
+                  Whatsapp Number
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   name=""
-                  id="email"
-                  placeholder="linkedIn"
+                  value={whatsappNo}
+                  onChange={(e) => setWhatsappNo(e.target.value)}
+                  id="wpno"
+                  placeholder="Whatsapp Number"
                   className={`${styles.input}`}
                 />
               </div>
 
               <div>
                 <label htmlFor="" className={`${styles.label}`}>
-                  Instagram
+                  Telegram Id
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   name=""
-                  id="email"
-                  placeholder="Instagram"
+                  id="teleid"
+                  value={teleId}
+                  onChange={(e) => setTeleId(e.target.value)}
+                  placeholder="Telegram Id"
+                  className={`${styles.input}`}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="" className={`${styles.label}`}>
+                  Select Your Profession
+                </label>
+              
+
+                <select
+                  name="cars"
+                  id="cars"
+                  className={`${styles.input} mr-[20px]`}
+                  value={profession}
+                  onChange={(e) => setProfession(e.target.value)}
+                >
+                  <option value="student">Student</option>
+                  <option value="job">Job</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="" className={`${styles.label}`}>
+                  DOB
+                </label>
+                <input
+                  type="date"
+                  name=""
+                  id="teleid"
+                  value={dob}
+                  onChange={(e) => setDOB(e.target.value)}
+                  placeholder="DOB"
                   className={`${styles.input}`}
                 />
               </div>
             </div>
-            <div className="mt-[50px]">
+            {/* <div className="mt-[50px]">
               <label htmlFor="" className={`${styles.label}`}>
                 Biography
               </label>
@@ -231,8 +283,8 @@ const PersonalData: FC<Props> = ({ user }) => {
                 id=""
                 className="w-full h-[75px] border-1 border-[#f2f0ef] px-[20px] py-[10px] bg-[#f2f0ef] rounded-lg text-[16px] font-Josefin focus:bg-[#fff] focus:outline-[#098b99]"
               ></textarea>
-            </div>
-            <button className={`${styles.button} mt-[30px]`} type="submit">
+            </div> */}
+            <button className={`${styles.button} my-[30px]`} type="submit">
               Save
             </button>
           </form>

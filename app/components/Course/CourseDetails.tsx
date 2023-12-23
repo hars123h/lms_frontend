@@ -12,7 +12,9 @@ import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
 import Image from "next/image";
 import { VscVerifiedFilled } from "react-icons/vsc";
 import { redirect } from "next/navigation";
-
+import axios from "axios";
+import { getCookie } from "@/app/helper/auth";
+import { toast } from "react-hot-toast";
 
 type Props = {
   data: any;
@@ -29,17 +31,36 @@ const CourseDetails = ({
   setRoute,
   setOpen: openAuthModal,
 }: Props) => {
-  const { data: userData,refetch } = useLoadUserQuery(undefined, {});
+  // const { data: userData, refetch } = useLoadUserQuery(undefined, {});
   const [user, setUser] = useState<any>();
   const [open, setOpen] = useState(false);
+  const token = getCookie("token");
+  const [toggle, setToggle] = useState(false);
 
   useEffect(() => {
-    setUser(userData?.user);
-  }, [userData]);
+    loadProfile();
+  }, [toggle]);
+
+  const loadProfile = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}me`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("LoggedIn User", response);
+        setUser(response.data.user);
+      })
+      .catch((error) => {
+        console.log("LoggedIn User", error.response.data.error);
+      });
+  };
 
   const dicountPercentenge =
     ((data?.estimatedPrice - data.price) / data?.estimatedPrice) * 100;
-
+    
   const discountPercentengePrice = dicountPercentenge.toFixed(0);
 
   const isPurchased =
@@ -53,6 +74,25 @@ const CourseDetails = ({
     //   openAuthModal(true);
     // }
     redirect(`/course-access/${data._id}`);
+  };
+  const handlePurchase = () => {
+    axios({
+      method: "POST",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}create-order`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data:{courseId:data._id, purchasedPrice:data?.price}
+    })
+      .then((response) => {
+        console.log("Purchasing a Course ", response);
+        toast.success("Course Purchased Successfully")
+        setToggle(!toggle);
+      })
+      .catch((error) => {
+        console.log("Purchasing a Course Error", error);
+        toast.error(error.response.data.message)
+      });
   };
 
   return (
@@ -240,12 +280,13 @@ const CourseDetails = ({
                     Enter to Course
                   </Link>
                 ) : (
-                  <Link href={`/course-access/${data._id}`}
+                  <button
+                    // href={`/course-access/${data._id}`}
                     className={`${styles.button} !w-[180px] my-3 font-Poppins cursor-pointer !bg-[crimson]`}
-                    
+                    onClick={handlePurchase}
                   >
                     Buy Now {data.price}$
-                  </Link>
+                  </button>
                 )}
               </div>
               <br />

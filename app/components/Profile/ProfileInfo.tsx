@@ -20,17 +20,37 @@ import { getCookie, isAuth, signout } from "@/app/helper/auth";
 import { redirect } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-
 type Props = {};
 
 const ProfileInfo: FC<Props> = () => {
   // const [name, setName] = useState(user && user?.name);
   const [logout, setLogout] = useState(false);
-  const [loadData, setLoadData] = useState([]);
+  const [loadData, setLoadData] = useState<any>(null);
   const [loadUser, setLoadUser] = useState(false);
   const token = getCookie("token");
   const router = useRouter();
+  const [check, setCheck] = useState(false);
 
+  useEffect(() => {
+    loadProfile();
+  }, [check]);
+
+  const loadProfile = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}me`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("PRIVATE PROFILE UPDATE", response);
+        setLoadData(response.data.user);
+      })
+      .catch((error) => {
+        console.log("PRIVATE PROFILE UPDATE ERROR", error.response.data.error);
+      });
+  };
 
   return (
     <>
@@ -40,7 +60,7 @@ const ProfileInfo: FC<Props> = () => {
           style={{ backgroundImage: `url(${BannerImage.src})` }}
         >
           <div className="font-[700] font-Josefin text-[#FFF]">
-            ₹ <span className="text-[35px] ml-[5px]">{isAuth()?.balance}</span>
+            ₹ <span className="text-[35px] ml-[5px]">{loadData?.balance}</span>
           </div>
 
           <div className="-mt-[10px] font-[600] font-Josefin text-[#E8E8E8]">
@@ -87,7 +107,7 @@ const ProfileInfo: FC<Props> = () => {
               <div className="font-[700] font-Josefin text-[#1f3d70]">
                 ₹{" "}
                 <span className="text-[20px] ml-[5px]">
-                  {isAuth()?.recharge_amount}
+                  {loadData?.recharge_amount}
                 </span>
               </div>
               <div className=" text-sm font-[600] font-Josefin text-[#818393]">
@@ -103,7 +123,7 @@ const ProfileInfo: FC<Props> = () => {
               <div className="font-[700] font-Josefin text-[#1f3d70] w-full">
                 ₹{" "}
                 <span className="text-[20px] ml-[5px]">
-                  {isAuth()?.withdrawal_sum}
+                  {loadData?.withdrawal_sum}
                 </span>
               </div>
               <div className=" text-sm font-[600] font-Josefin text-[#818393]">
@@ -117,10 +137,10 @@ const ProfileInfo: FC<Props> = () => {
             style={{ boxShadow: "10px 5px 5px #F0F0F0" }}
           >
             <div className="font-[700] font-Josefin text-[#1f3d70] w-full">
-              ₹ <span className="text-[20px] ml-[5px]">50.00</span>
+              ₹ <span className="text-[20px] ml-[5px]">{loadData?.courses.length}</span>
             </div>
             <div className=" text-sm font-[600] font-Josefin text-[#818393]">
-              My Order
+              My Courses
             </div>
           </div>
 
@@ -129,7 +149,8 @@ const ProfileInfo: FC<Props> = () => {
             style={{ boxShadow: "10px 5px 5px #F0F0F0" }}
           >
             <div className="font-[700] font-Josefin text-[#1f3d70] w-full">
-              ₹ <span className="text-[20px] ml-[5px]">50.00</span>
+              ₹{" "}
+              <span className="text-[20px] ml-[5px]">{loadData?.earning}</span>
             </div>
             <div className=" text-sm font-[600] font-Josefin text-[#818393]">
               Total Earning
@@ -140,12 +161,14 @@ const ProfileInfo: FC<Props> = () => {
             className="bg-[#FFFFF0] h-[70px] p-[15px] rounded-lg"
             style={{ boxShadow: "10px 5px 5px #F0F0F0" }}
           >
-            <div className="font-[700] font-Josefin text-[#1f3d70] w-full">
+            {/* <div className="font-[700] font-Josefin text-[#1f3d70] w-full">
               ₹ <span className="text-[20px] ml-[5px]">50.00</span>
-            </div>
-            <div className=" text-sm font-[600] font-Josefin text-[#818393]">
-              Total Reward
-            </div>
+            </div> */}
+            <Link href={"/invite-member"}>
+              <div className=" text-sm font-[600] font-Josefin text-[#818393]">
+                Invite Team
+              </div>
+            </Link>
           </div>
 
           <div
@@ -161,6 +184,21 @@ const ProfileInfo: FC<Props> = () => {
           </div>
         </div>
         <div className="mt-[30px]">
+          {loadData?.role == "admin" && (
+            <div
+              className="bg-[#FFFFF0] h-[70px] p-[15px] rounded-lg w-full my-[10px]"
+              style={{ boxShadow: "10px 5px 5px #F0F0F0" }}
+            >
+              <div className=" flex items-center font-[700] font-Josefin text-[#1f3d70] w-full">
+                <Image src={PayPassword.src} width={50} height={50} alt="" />
+                <Link href={"/admin"}>
+                  <div className=" text-md font-[600] font-Josefin text-[#818393] ml-[30px]">
+                    Navigate to Admin Dashboard
+                  </div>
+                </Link>
+              </div>
+            </div>
+          )}
           <div
             className="bg-[#FFFFF0] h-[70px] p-[15px] rounded-lg w-full my-[10px]"
             style={{ boxShadow: "10px 5px 5px #F0F0F0" }}
@@ -221,11 +259,11 @@ const ProfileInfo: FC<Props> = () => {
           >
             <div
               className=" flex items-center font-[700] font-Josefin text-[#1f3d70] w-full cursor-pointer"
-              onClick = {() => {
+              onClick={() => {
                 signout(() => {
                   router.push(`/`);
-                })
-            }}
+                });
+              }}
             >
               <Image src={Logout.src} width={50} height={50} alt="" />
               <div className=" text-md font-[600] font-Josefin text-[#818393] ml-[30px]">

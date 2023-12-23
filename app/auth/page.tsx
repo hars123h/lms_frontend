@@ -4,6 +4,7 @@ import Heading from "../utils/Heading";
 import Header from "../components/Header";
 import Auth from "../components/Route/Auth";
 import { redirect } from "next/navigation";
+import { useSearchParams } from 'next/navigation'
 
 import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
 
@@ -18,6 +19,10 @@ const Page: FC<Props> = (props) => {
   const [authLogin, setAuthLogin] = useState(false);
   const [token, setToken] = useState("");
   const {data:userData,isLoading,refetch} = useLoadUserQuery(undefined,{});
+  const searchParams = useSearchParams()
+
+  const search = searchParams?.get('invt')
+  console.log("Search Paramas", search);
 
 
   useEffect(() => {
@@ -50,6 +55,7 @@ const Page: FC<Props> = (props) => {
        setAuthLogin={setAuthLogin}
        token={token}
        setToken={setToken}
+       invt_id={search}
       
       />
       {/* <Hero /> */}

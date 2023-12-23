@@ -15,8 +15,9 @@ type Props = {
   setAuthActive: (open: boolean) => void;
   authLogin: boolean;
   setAuthLogin: (open: boolean) => void;
-  token:string;
-  setToken:(token: string) => void;
+  token: string;
+  setToken: (token: string) => void;
+  invt_id:any;
 };
 
 const schema = Yup.object().shape({
@@ -25,6 +26,7 @@ const schema = Yup.object().shape({
     .email("Invalid email!")
     .required("Please enter your email!"),
   password: Yup.string().required("Please enter your password!").min(6),
+  parent_invt:Yup.string()
 });
 
 const Register: FC<Props> = ({
@@ -36,49 +38,35 @@ const Register: FC<Props> = ({
   setAuthLogin,
   token,
   setToken,
+  invt_id
 }) => {
   const [register, { data, error, isSuccess }] = useRegisterMutation();
 
-  // useEffect(() => {
-  //   if (isSuccess) {
-  //     const message = data?.message || "Registration successful";
-  //     toast.success(message);
-  //     setAuthActive(false);
-  //     setAuthLogin(false);
-  //     setAuthVerify(true);
-  //   }
-  //   if (error) {
-  //     if ("data" in error) {
-  //       const errorData = error as any;
-  //       toast.error(errorData.data.message);
-  //     }
-  //   }
-  // }, [isSuccess, error]);
-
   const formik = useFormik({
-    initialValues: { name: "", email: "", password: "" },
+    initialValues: { name: "", email: "", password: "" , parent_invt:""},
     validationSchema: schema,
-    onSubmit: async ({ name, email, password }) => {
+    onSubmit: async ({ name, email, password, parent_invt }) => {
       const data = {
         name,
         email,
         password,
+        parent_invt:invt_id
       };
 
       axios({
         method: "POST",
         url: `${process.env.NEXT_PUBLIC_SERVER_URI}registration`,
-        data: {name, email, password },
+        data: { name, email, password, parent_invt:invt_id },
       })
         .then((response) => {
-             console.log("Registration SUCCESS", response);
-              // save the response (user, token) localstorage/cookie
-              toast.success("Registration  Successfull!");
-              setToken(response?.data?.activationToken)
-              setAuthActive(false);
-              setAuthLogin(false);
-              setAuthVerify(true);
-            // redirect("/profile");
+          console.log("Registration SUCCESS", response);
+          // save the response (user, token) localstorage/cookie
+          toast.success("Registration  Successfull!");
+          setToken(response?.data?.activationToken);
+          setAuthActive(false);
+          setAuthLogin(false);
+          setAuthVerify(true);
+          // redirect("/profile");
         })
         .catch((error) => {
           console.log("Registration ERROR", error.response.data.message);
@@ -91,8 +79,10 @@ const Register: FC<Props> = ({
   const { errors, touched, values, handleChange, handleSubmit } = formik;
   return (
     <>
+   
       <form onSubmit={handleSubmit} className="w-full">
         <div className="mt-[45px] 1200px:w-[85%]">
+         
           <div className="my-3">
             <input
               type="text"

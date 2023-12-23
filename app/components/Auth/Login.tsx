@@ -10,6 +10,7 @@ import { styles } from "@/app/style/style";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { authenticate } from "@/app/helper/auth";
+import { useRouter } from "next/navigation";
 
 type Props = {};
 
@@ -23,19 +24,7 @@ const schema = Yup.object().shape({
 const Login: FC<Props> = () => {
   const [login, { data: commingData, isSuccess, error }] = useLoginMutation();
   const { data } = useSession();
-
-  // useEffect(() => {
-  //   if (isSuccess) {
-  //     toast.success("Login Successfully!");
-  //     redirect("/profile");
-  //   }
-  //   if (error) {
-  //     if ("data" in error) {
-  //       const errorData = error as any;
-  //       toast.error(errorData.data.message);
-  //     }
-  //   }
-  // }, [isSuccess, error, commingData]);
+  const router = useRouter();
 
   const formik = useFormik({
     initialValues: { email: "", password: "" },
@@ -51,6 +40,7 @@ const Login: FC<Props> = () => {
           // save the response (user, token) localstorage/cookie
           authenticate(response, () => {
             toast.success("Login Successfully!");
+            router.push("/profile")
             // redirect("/profile");
           });
         })

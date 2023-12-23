@@ -21,6 +21,7 @@ type Props = {
 const WithdrawalPage: FC<Props> = ({ user }) => {
   const [tradePassword, setTradePassword] = useState("");
   const [withdrawalAmount, setWithdrawalAmount] = useState<number>();
+  const [userData, setUserData] = useState<any>(null)
   const router = useRouter();
   const [createWithdrawal, { isLoading, isSuccess, error }] =
     useCreateWithdrawalMutation();
@@ -32,27 +33,40 @@ const WithdrawalPage: FC<Props> = ({ user }) => {
     }
   }, []);
 
-  // useEffect(() => {
-  //   console.log("User Log", user);
 
-  //   if (isSuccess) {
-  //     toast.success("Withdrawal Request Submitted Successfully");
+  useEffect(() => {
+    loadProfile();
+  }, []);
 
-  //     router.push("/withdrawal/records");
-  //   }
-  //   if (error) {
-  //     if ("data" in error) {
-  //       const errorMessage = error as any;
-  //       toast.error(errorMessage.data.message);
-  //     }
-  //   }
-  // }, [isSuccess, error]);
+  const loadProfile = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}me`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("PRIVATE PROFILE UPDATE", response);
+        setUserData(response.data.user);
+      })
+      .catch((error) => {
+        console.log("PRIVATE PROFILE UPDATE ERROR", error.response.data.error);
+      });
+  };
 
   const handleSumit = async () => {
     if (!withdrawalAmount || !tradePassword) {
       return toast.error("All Fields are Required");
     }
+    if(!userData?.bankDetails) {
+      return toast.error("Please Enter the Bank Details");
+    }
 
+    if(userData?.earning < withdrawalAmount) {
+      return toast.error("Please Enter Less Than Eraning Amount");
+    }
+   
     const data = {
       tradePassword,
       withdrawalAmount,
@@ -63,7 +77,9 @@ const WithdrawalPage: FC<Props> = ({ user }) => {
       phoneNo: isAuth()?.bankDetails?.mobileNumber,
       user: isAuth()?._id,
     };
-
+    
+       
+    
     const updateData = await axios({
       method: "POST",
       url: `${process.env.NEXT_PUBLIC_SERVER_URI}place-withdraw`,
@@ -77,7 +93,7 @@ const WithdrawalPage: FC<Props> = ({ user }) => {
         updateUser(response, () => {
           toast.success("Withdrawal Placed Successfully");
           router.push("/withdrawal/records");
-          // setDataUser(response.data.user)
+          // setDataUser(response.data.user) 
         });
       })
       .catch((error) => {
@@ -87,10 +103,8 @@ const WithdrawalPage: FC<Props> = ({ user }) => {
       });
 
     // if (!isLoading) {
-
     //   await createWithdrawal(data);
     // }
-
     // router.push(`/recharge-window/${amount}`);
   };
 

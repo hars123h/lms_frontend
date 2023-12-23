@@ -20,6 +20,8 @@ import {
 import { BiMessage } from "react-icons/bi";
 import { VscVerifiedFilled } from "react-icons/vsc";
 import Ratings from "@/app/utils/Ratings";
+import axios from "axios";
+import { getCookie } from "@/app/helper/auth";
 // import socketIO from "socket.io-client";
 // const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
 // const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
@@ -29,8 +31,10 @@ type Props = {
   id: string;
   activeVideo: number;
   setActiveVideo: (activeVideo: number) => void;
+  fetchData: boolean;
+  setFetchData: (activeVideo: boolean) => void;
   user: any;
-  refetch: any;
+  // refetch: any;
 };
 
 const CourseContentMedia = ({
@@ -39,8 +43,10 @@ const CourseContentMedia = ({
   activeVideo,
   setActiveVideo,
   user,
-  refetch,
-}: Props) => {
+  fetchData,
+  setFetchData,
+}: // refetch,
+Props) => {
   const [activeBar, setactiveBar] = useState(0);
   const [question, setQuestion] = useState("");
   const [review, setReview] = useState("");
@@ -50,154 +56,293 @@ const CourseContentMedia = ({
   const [reply, setReply] = useState("");
   const [reviewId, setReviewId] = useState("");
   const [isReviewReply, setIsReviewReply] = useState(false);
+  const token = getCookie("token");
+  const [fetchCourse, setFetchCourse] = useState(false);
+  const [dataDetailCourse, setDataDetailCourse] = useState<any>(null);
+  const [answerLoading, setAnswerLoading] = useState(false);
+  const [questionCreationLoading, setQuestionLoading] = useState(false);
+  const [reviewCreationLoading, setReviewLoading] = useState(false);
+  const [replyCreationLoading, setReplyCreation] = useState(false);
 
-  const [
-    addNewQuestion,
-    { isSuccess, error, isLoading: questionCreationLoading },
-  ] = useAddNewQuestionMutation();
-  const { data: courseData, refetch: courseRefetch } = useGetCourseDetailsQuery(
-    id,
-    { refetchOnMountOrArgChange: true }
-  );
-  const [
-    addAnswerInQuestion,
-    {
-      isSuccess: answerSuccess,
-      error: answerError,
-      isLoading: answerCreationLoading,
-    },
-  ] = useAddAnswerInQuestionMutation();
-  const course = courseData?.course;
-  const [
-    addReviewInCourse,
-    {
-      isSuccess: reviewSuccess,
-      error: reviewError,
-      isLoading: reviewCreationLoading,
-    },
-  ] = useAddReviewInCourseMutation();
+  // const [
+  //   addNewQuestion,
+  //   { isSuccess, error, isLoading: questionCreationLoading },
+  // ] = useAddNewQuestionMutation();
+  // const { data: courseData, refetch: courseRefetch } = useGetCourseDetailsQuery(
+  //   id,
+  //   { refetchOnMountOrArgChange: true }
+  // );
+  useEffect(() => {
+    loadCourseDetail();
+  }, [fetchCourse]);
 
-  const [
-    addReplyInReview,
-    {
-      isSuccess: replySuccess,
-      error: replyError,
-      isLoading: replyCreationLoading,
-    },
-  ] = useAddReplyInReviewMutation();
+  const loadCourseDetail = () => {
+    axios({
+      method: "GET",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}get-course/${id}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        console.log("Course Detail Success", response);
+        setDataDetailCourse(response.data.course);
+      })
+      .catch((error) => {
+        console.log("Course Detail Error", error.response.data.message);
+      });
+  };
+  // const [
+  //   addAnswerInQuestion,
+  //   {
+  //     isSuccess: answerSuccess,
+  //     error: answerError,
+  //     isLoading: answerCreationLoading,
+  //   },
+  // ] = useAddAnswerInQuestionMutation();
+  // const course = courseData?.course;
+  // const [
+  //   addReviewInCourse,
+  //   {
+  //     isSuccess: reviewSuccess,
+  //     error: reviewError,
+  //     isLoading: reviewCreationLoading,
+  //   },
+  // ] = useAddReviewInCourseMutation();
 
-  const isReviewExists = course?.reviews?.find(
+  // const [
+  //   addReplyInReview,
+  //   {
+  //     isSuccess: replySuccess,
+  //     error: replyError,
+  //     isLoading: replyCreationLoading,
+  //   },
+  // ] = useAddReplyInReviewMutation();
+
+  const isReviewExists = dataDetailCourse?.reviews?.find(
     (item: any) => item.user._id === user._id
   );
 
+  // useEffect(() => {
+  //   loadCoursesByUser();
+  // }, [fetchData]);
+
   const handleQuestion = () => {
+    setQuestionLoading(true);
     if (question.length === 0) {
       toast.error("Question can't be empty");
     } else {
-      addNewQuestion({
-        question,
-        courseId: id,
-        contentId: data[activeVideo]._id,
-      });
+      axios({
+        method: "PUT",
+        url: `${process.env.NEXT_PUBLIC_SERVER_URI}add-question`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          question,
+          courseId: id,
+          contentId: data[activeVideo]._id,
+        },
+      })
+        .then((response) => {
+          console.log("Adding Question", response);
+          setQuestion("");
+          setFetchData(!fetchData);
+          setQuestionLoading(false);
+
+          // setContentCourse(response.data.content);
+        })
+        .catch((error) => {
+          console.log("Adding Question Error", error.response.data.error);
+          toast.error(error.response.data.message);
+          setQuestionLoading(false);
+        });
+
+      // addNewQuestion({
+      //   question,
+      //   courseId: id,
+      //   contentId: data[activeVideo]._id,
+      // });
     }
   };
 
-  useEffect(() => {
-    if (isSuccess) {
-      setQuestion("");
-      refetch();
-      // socketId.emit("notification", {
-      //   title: `New Question Received`,
-      //   message: `You have a new question in ${data[activeVideo].title}`,
-      //   userId: user._id,
-      // });
-    }
-    if (answerSuccess) {
-      setAnswer("");
-      refetch();
-      if (user.role !== "admin") {
-        // socketId.emit("notification", {
-        //   title: `New Reply Received`,
-        //   message: `You have a new question in ${data[activeVideo].title}`,
-        //   userId: user._id,
-        // });
-      }
-    }
-    if (error) {
-      if ("data" in error) {
-        const errorMessage = error as any;
-        toast.error(errorMessage.data.message);
-      }
-    }
-    if (answerError) {
-      if ("data" in answerError) {
-        const errorMessage = error as any;
-        toast.error(errorMessage.data.message);
-      }
-    }
-    if (reviewSuccess) {
-      setReview("");
-      setRating(1);
-      courseRefetch();
-      // socketId.emit("notification", {
-      //   title: `New Question Received`,
-      //   message: `You have a new question in ${data[activeVideo].title}`,
-      //   userId: user._id,
-      // });
-    }
-    if (reviewError) {
-      if ("data" in reviewError) {
-        const errorMessage = error as any;
-        toast.error(errorMessage.data.message);
-      }
-    }
-    if (replySuccess) {
-      setReply("");
-      courseRefetch();
-    }
-    if (replyError) {
-      if ("data" in replyError) {
-        const errorMessage = error as any;
-        toast.error(errorMessage.data.message);
-      }
-    }
-  }, [
-    isSuccess,
-    error,
-    answerSuccess,
-    answerError,
-    reviewSuccess,
-    reviewError,
-    replySuccess,
-    replyError,
-  ]);
+  // useEffect(() => {
+  //   // if (isSuccess) {
+  //   //   setQuestion("");
+  //   //   // refetch();
+  //   //   // socketId.emit("notification", {
+  //   //   //   title: `New Question Received`,
+  //   //   //   message: `You have a new question in ${data[activeVideo].title}`,
+  //   //   //   userId: user._id,
+  //   //   // });
+  //   // }
+  //   if (answerSuccess) {
+  //     setAnswer("");
+  //     // refetch();
+  //     if (user.role !== "admin") {
+  //       // socketId.emit("notification", {
+  //       //   title: `New Reply Received`,
+  //       //   message: `You have a new question in ${data[activeVideo].title}`,
+  //       //   userId: user._id,
+  //       // });
+  //     }
+  //   }
+  //   // if (error) {
+  //   //   if ("data" in error) {
+  //   //     const errorMessage = error as any;
+  //   //     toast.error(errorMessage.data.message);
+  //   //   }
+  //   // }
+  //   // if (answerError) {
+  //   //   if ("data" in answerError) {
+  //   //     const errorMessage = error as any;
+  //   //     toast.error(errorMessage.data.message);
+  //   //   }
+  //   // }
+  //   if (reviewSuccess) {
+  //     setReview("");
+  //     setRating(1);
+  //     courseRefetch();
+  //     // socketId.emit("notification", {
+  //     //   title: `New Question Received`,
+  //     //   message: `You have a new question in ${data[activeVideo].title}`,
+  //     //   userId: user._id,
+  //     // });
+  //   }
+  //   // if (reviewError) {
+  //   //   if ("data" in reviewError) {
+  //   //     const errorMessage = error as any;
+  //   //     toast.error(errorMessage.data.message);
+  //   //   }
+  //   // }
+  //   if (replySuccess) {
+  //     setReply("");
+  //     courseRefetch();
+  //   }
+  //   // if (replyError) {
+  //   //   if ("data" in replyError) {
+  //   //     const errorMessage = error as any;
+  //   //     toast.error(errorMessage.data.message);
+  //   //   }
+  //   // }
+  // }, [
+  //   answerSuccess,
+  //   answerError,
+  //   reviewSuccess,
+  //   reviewError,
+  //   replySuccess,
+  //   replyError,
+  // ]);
 
   const handleAnswerSubmit = () => {
-    addAnswerInQuestion({
-      answer,
-      courseId: id,
-      contentId: data[activeVideo]._id,
-      questionId: questionId,
-    });
+    setAnswerLoading(true);
+    axios({
+      method: "PUT",
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}add-answer`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: {
+        answer,
+        courseId: id,
+        contentId: data[activeVideo]._id,
+        questionId: questionId,
+      },
+    })
+      .then((response) => {
+        console.log("Adding Answer", response);
+        setAnswer("");
+        setFetchData(!fetchCourse);
+        setAnswerLoading(false);
+
+        // setContentCourse(response.data.content);
+      })
+      .catch((error) => {
+        console.log("Adding Answer  Error", error.response.data.error);
+        toast.error(error.response.data.message);
+        setAnswerLoading(false);
+      });
+
+    // addAnswerInQuestion({
+    //   answer,
+    //   courseId: id,
+    //   contentId: data[activeVideo]._id,
+    //   questionId: questionId,
+    // });
   };
 
   const handleReviewSubmit = async () => {
+    setReviewLoading(true);
     if (review.length === 0) {
       toast.error("Review can't be empty");
     } else {
-      addReviewInCourse({ review, rating, courseId: id });
+      axios({
+        method: "PUT",
+        url: `${process.env.NEXT_PUBLIC_SERVER_URI}add-review/${id}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          review,
+          rating,
+        },
+      })
+        .then((response) => {
+          console.log("Review Submit", response);
+          setReview("");
+          setRating(1);
+          setFetchCourse(!fetchCourse);
+          setReviewLoading(false);
+          // setContentCourse(response.data.content);
+        })
+        .catch((error) => {
+          console.log("Review Submit Error", error.response.data.message);
+          toast.error(error.response.data.message);
+          setReviewLoading(false);
+        });
+
+      // addReviewInCourse({ review, rating, courseId: id });
     }
   };
 
   const handleReviewReplySubmit = () => {
+    setReplyCreation(true);
     if (!replyCreationLoading) {
       if (reply === "") {
         toast.error("Reply can't be empty");
       } else {
-        addReplyInReview({ comment: reply, courseId: id, reviewId });
+        axios({
+          method: "PUT",
+          url: `${process.env.NEXT_PUBLIC_SERVER_URI}/add-reply`,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          data: {
+            comment: reply,
+            courseId: id,
+            reviewId,
+          },
+        })
+          .then((response) => {
+            console.log("Review Submit", response);
+            setReply("");
+            setFetchCourse(!fetchData);
+            setReplyCreation(false);
+
+            // setContentCourse(response.data.content);
+          })
+          .catch((error) => {
+            console.log("Review Submit Error", error.response.data.message);
+            toast.error(error.response.data.message);
+            setReplyCreation(false);
+          });
+
+        // addReplyInReview({ comment: reply, courseId: id, reviewId });
       }
     }
   };
+
+  console.log("Conternt Data", data);
 
   return (
     <div className="w-[95%] 800px:w-[86%] py-4 m-auto">
@@ -223,7 +368,7 @@ const CourseContentMedia = ({
           className={`${
             styles.button
           } !w-[unset] text-white  !min-h-[40px] !py-[unset] ${
-            data.length - 1 === activeVideo && "!cursor-no-drop opacity-[.8]"
+            data?.length - 1 === activeVideo && "!cursor-no-drop opacity-[.8]"
           }`}
           onClick={() =>
             setActiveVideo(
@@ -331,7 +476,6 @@ const CourseContentMedia = ({
               user={user}
               questionId={questionId}
               setQuestionId={setQuestionId}
-              answerCreationLoading={answerCreationLoading}
             />
           </div>
         </>
@@ -410,35 +554,40 @@ const CourseContentMedia = ({
             <br />
             <div className="w-full h-[1px] bg-[#ffffff3b]"></div>
             <div className="w-full">
-              {(course?.reviews && [...course.reviews].reverse())?.map(
-                (item: any, index: number) => {
-                  
-                  return (
-                    <div className="w-full my-5 dark:text-white text-black" key={index}>
-                      <div className="w-full flex">
-                        <div>
-                          <Image
-                            src={
-                              item.user.avatar
-                                ? item.user.avatar.url
-                                : "https://res.cloudinary.com/dshp9jnuy/image/upload/v1665822253/avatars/nrxsg8sd9iy10bbsoenn.png"
-                            }
-                            width={50}
-                            height={50}
-                            alt=""
-                            className="w-[50px] h-[50px] rounded-full object-cover"
-                          />
-                        </div>
-                        <div className="ml-2">
-                          <h1 className="text-[18px]">{item?.user.name}</h1>
-                          <Ratings rating={item.rating} />
-                          <p>{item.comment}</p>
-                          <small className="text-[#0000009e] dark:text-[#ffffff83]">
-                            {format(item.createdAt)} •
-                          </small>
-                        </div>
+              {(
+                dataDetailCourse?.reviews &&
+                [...dataDetailCourse.reviews].reverse()
+              )?.map((item: any, index: number) => {
+                return (
+                  <div
+                    className="w-full my-5 dark:text-white text-black"
+                    key={index}
+                  >
+                    <div className="w-full flex">
+                      <div>
+                        <Image
+                          src={
+                            item.user.avatar
+                              ? item.user.avatar.url
+                              : "https://res.cloudinary.com/dshp9jnuy/image/upload/v1665822253/avatars/nrxsg8sd9iy10bbsoenn.png"
+                          }
+                          width={50}
+                          height={50}
+                          alt=""
+                          className="w-[50px] h-[50px] rounded-full object-cover"
+                        />
                       </div>
-                      {user.role === "admin" && item.commentReplies.length === 0 && (
+                      <div className="ml-2">
+                        <h1 className="text-[18px]">{item?.user.name}</h1>
+                        <Ratings rating={item.rating} />
+                        <p>{item.comment}</p>
+                        <small className="text-[#0000009e] dark:text-[#ffffff83]">
+                          {format(item.createdAt)} •
+                        </small>
+                      </div>
+                    </div>
+                    {user.role === "admin" &&
+                      item.commentReplies.length === 0 && (
                         <span
                           className={`${styles.label} !ml-10 cursor-pointer`}
                           onClick={() => {
@@ -450,56 +599,55 @@ const CourseContentMedia = ({
                         </span>
                       )}
 
-                      {isReviewReply && reviewId === item._id && (
-                        <div className="w-full flex relative">
-                          <input
-                            type="text"
-                            placeholder="Enter your reply..."
-                            value={reply}
-                            onChange={(e: any) => setReply(e.target.value)}
-                            className="block 800px:ml-12 mt-2 outline-none bg-transparent border-b border-[#000] dark:border-[#fff] p-[5px] w-[95%]"
-                          />
-                          <button
-                            type="submit"
-                            className="absolute right-0 bottom-1"
-                            onClick={handleReviewReplySubmit}
-                          >
-                            Submit
-                          </button>
-                        </div>
-                      )}
+                    {isReviewReply && reviewId === item._id && (
+                      <div className="w-full flex relative">
+                        <input
+                          type="text"
+                          placeholder="Enter your reply..."
+                          value={reply}
+                          onChange={(e: any) => setReply(e.target.value)}
+                          className="block 800px:ml-12 mt-2 outline-none bg-transparent border-b border-[#000] dark:border-[#fff] p-[5px] w-[95%]"
+                        />
+                        <button
+                          type="submit"
+                          className="absolute right-0 bottom-1"
+                          onClick={handleReviewReplySubmit}
+                        >
+                          Submit
+                        </button>
+                      </div>
+                    )}
 
-                      {item.commentReplies.map((i: any, index: number) => (
-                        <div className="w-full flex 800px:ml-16 my-5" key={index}>
-                          <div className="w-[50px] h-[50px]">
-                            <Image
-                              src={
-                                i.user.avatar
-                                  ? i.user.avatar.url
-                                  : "https://res.cloudinary.com/dshp9jnuy/image/upload/v1665822253/avatars/nrxsg8sd9iy10bbsoenn.png"
-                              }
-                              width={50}
-                              height={50}
-                              alt=""
-                              className="w-[50px] h-[50px] rounded-full object-cover"
-                            />
-                          </div>
-                          <div className="pl-2">
-                            <div className="flex items-center">
-                              <h5 className="text-[20px]">{i.user.name}</h5>{" "}
-                              <VscVerifiedFilled className="text-[#0095F6] ml-2 text-[20px]" />
-                            </div>
-                            <p>{i.comment}</p>
-                            <small className="text-[#ffffff83]">
-                              {format(i.createdAt)} •
-                            </small>
-                          </div>
+                    {item.commentReplies.map((i: any, index: number) => (
+                      <div className="w-full flex 800px:ml-16 my-5" key={index}>
+                        <div className="w-[50px] h-[50px]">
+                          <Image
+                            src={
+                              i.user.avatar
+                                ? i.user.avatar.url
+                                : "https://res.cloudinary.com/dshp9jnuy/image/upload/v1665822253/avatars/nrxsg8sd9iy10bbsoenn.png"
+                            }
+                            width={50}
+                            height={50}
+                            alt=""
+                            className="w-[50px] h-[50px] rounded-full object-cover"
+                          />
                         </div>
-                      ))}
-                    </div>
-                  );
-                }
-              )}
+                        <div className="pl-2">
+                          <div className="flex items-center">
+                            <h5 className="text-[20px]">{i.user.name}</h5>{" "}
+                            <VscVerifiedFilled className="text-[#0095F6] ml-2 text-[20px]" />
+                          </div>
+                          <p>{i.comment}</p>
+                          <small className="text-[#ffffff83]">
+                            {format(i.createdAt)} •
+                          </small>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
             </div>
           </>
         </div>
@@ -507,7 +655,6 @@ const CourseContentMedia = ({
     </div>
   );
 };
-
 
 const CommentReply = ({
   data,
@@ -517,7 +664,6 @@ const CommentReply = ({
   handleAnswerSubmit,
   questionId,
   setQuestionId,
-  answerCreationLoading,
 }: any) => {
   return (
     <>
@@ -534,7 +680,6 @@ const CommentReply = ({
             questionId={questionId}
             setQuestionId={setQuestionId}
             handleAnswerSubmit={handleAnswerSubmit}
-            answerCreationLoading={answerCreationLoading}
           />
         ))}
       </div>
@@ -549,7 +694,6 @@ const CommentItem = ({
   answer,
   setAnswer,
   handleAnswerSubmit,
-  answerCreationLoading,
 }: any) => {
   const [replyActive, setreplyActive] = useState(false);
   return (
@@ -600,10 +744,13 @@ const CommentItem = ({
           </span>
         </div>
 
-        {replyActive && questionId === item._id &&  (
+        {replyActive && questionId === item._id && (
           <>
             {item.questionReplies.map((item: any) => (
-              <div className="w-full flex 800px:ml-16 my-5 text-black dark:text-white" key={item._id}>
+              <div
+                className="w-full flex 800px:ml-16 my-5 text-black dark:text-white"
+                key={item._id}
+              >
                 <div>
                   <Image
                     src={
@@ -639,15 +786,14 @@ const CommentItem = ({
                   value={answer}
                   onChange={(e: any) => setAnswer(e.target.value)}
                   className={`block 800px:ml-12 mt-2 outline-none bg-transparent border-b border-[#00000027] dark:text-white text-black dark:border-[#fff] p-[5px] w-[95%] ${
-                    answer === "" ||
-                    (answerCreationLoading && "cursor-not-allowed")
+                    answer === ""
                   }`}
                 />
                 <button
                   type="submit"
                   className="absolute right-0 bottom-1"
                   onClick={handleAnswerSubmit}
-                  disabled={answer === "" || answerCreationLoading}
+                  disabled={answer === ""}
                 >
                   Submit
                 </button>

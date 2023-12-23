@@ -11,6 +11,8 @@ import {
 } from "@/redux/features/orders/ordersApi";
 // import { loadStripe } from "@stripe/stripe-js";
 import { useLoadUserQuery } from "@/redux/features/api/apiSlice";
+import axios from "axios";
+import { getCookie } from "@/app/helper/auth";
 
 type Props = {
   id: string;
@@ -20,12 +22,14 @@ const CourseDetailsPage = ({ id }: Props) => {
   const [route, setRoute] = useState("Login");
   const [open, setOpen] = useState(false);
   const { data, isLoading } = useGetCourseDetailsQuery(id);
+  const [singleCourse, setSingleCourse] = useState<any>(null)
   const { data: config } = useGetStripePublishablekeyQuery({});
   const [createPaymentIntent, { data: paymentIntentData }] =
     useCreatePaymentIntentMutation();
   const { data: userData } = useLoadUserQuery(undefined, {});
   const [stripePromise, setStripePromise] = useState<any>(null);
   const [clientSecret, setClientSecret] = useState("");
+  const token = getCookie("token");
 
 //   useEffect(() => {
 //     if (config) {
@@ -44,18 +48,38 @@ const CourseDetailsPage = ({ id }: Props) => {
 //     }
 //   }, [paymentIntentData]);
 
+useEffect(() => {
+  getSingleCourse();
+}, []);
+
+const getSingleCourse = () => {
+  axios({
+    method: "GET",
+    url: `${process.env.NEXT_PUBLIC_SERVER_URI}get-course/${id}`,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((response) => {
+      console.log("PRIVATE PROFILE UPDATE", response);
+      setSingleCourse(response.data.course);
+    })
+    .catch((error) => {
+      console.log("PRIVATE PROFILE UPDATE ERROR", error.response.data.error);
+    });
+};
   return (
     <>
-      {isLoading ? (
+      {!singleCourse ? (
         <Loader />
       ) : (
         <div>
           <Heading
-            title={data.course.name + " - ELearning"}
+            title={singleCourse?.name + " - ELearning"}
             description={
               "ELearning is a programming community which is developed by shahriar sajeeb for helping programmers"
             }
-            keywords={data?.course?.tags}
+            keywords={singleCourse?.tags}
           />
           <Header
             route={route}
@@ -66,7 +90,7 @@ const CourseDetailsPage = ({ id }: Props) => {
           />
           {/* {stripePromise && ( */}
             <CourseDetails
-              data={data.course}
+              data={singleCourse}
               stripePromise={stripePromise}
               clientSecret={clientSecret}
               setRoute={setRoute}

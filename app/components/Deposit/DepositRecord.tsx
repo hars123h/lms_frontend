@@ -102,6 +102,11 @@ const DepositRecord: FC<Props> = () => {
                     ) : (
                       ""
                     )}
+                    {item?.status === "Declined" ? (
+                      <p className="text-[red]">{item?.status}</p>
+                    ) : (
+                      ""
+                    )}
 
                     {item?.status === "Confirmed" ? (
                       <p className="text-[green]">{item?.status}</p>
