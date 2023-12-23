@@ -15,13 +15,15 @@ import Image from "next/image";
 import { getCookie } from "@/app/helper/auth";
 
 const InviteMember: FC<Props> = () => {
-  const origin = window.location.origin;
-  console.log("Origin", origin);
   const [userData, setDataUser] = useState<any>(null);
+  const [origin, setOrigin] = useState("")
   const token = getCookie("token");
+ 
 
   useEffect(() => {
     loadProfile();
+  setOrigin(window.location.origin)
+    
   }, []);
 
   const loadProfile = () => {
@@ -59,14 +61,13 @@ const InviteMember: FC<Props> = () => {
                 text={`${origin}/auth/?invt=${userData?.user_invite}`}
                 onCopy={() => toast.success("Copied Successfully!")}
               >
-               <button
-                className="py-[6px] px-[10px] rounded-md mt-[3px] w-[100px]"
-                style={{ background: "rgb(240, 191, 121)" }}
-              >
-                Copy
-              </button>
+                <button
+                  className="py-[6px] px-[10px] rounded-md mt-[3px] w-[100px]"
+                  style={{ background: "rgb(240, 191, 121)" }}
+                >
+                  Copy
+                </button>
               </CopyToClipboard>
-             
             </div>
             <div className="w-[50%] flex flex-col">
               <h3>Team</h3>
