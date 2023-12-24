@@ -8,10 +8,10 @@ import { Toaster } from "react-hot-toast";
 import Loader from "./components/Loader/Loader";
 import { SessionProvider } from "next-auth/react";
 
-// import socketIO from "socket.io-client";
-// const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
-// const socketId = socketIO(ENDPOINT, {withCredentials: true, transports: ["websocket"] });
-// // const socketId = socketIO('http://localhost:8000/',{  
+import socketIO from "socket.io-client";
+const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
+const socketId = socketIO(ENDPOINT, {withCredentials: true, transports: ["websocket"] });
+// const socketId = socketIO('http://localhost:8000/',{  
 //   withCredentials: true,
 //   transports: ["websocket"]
 // })
@@ -65,9 +65,9 @@ export default function RootLayout({
 const Custom: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isLoading } = useLoadUserQuery({});
 
-  // useEffect(() => {
-  //   socketId.on("connection", () => {});
-  // }, []);
+  useEffect(() => {
+    socketId.on("connection", () => {});
+  }, []);
 
   return <div>{isLoading ? <Loader /> : <div>{children} </div>}</div>;
 };

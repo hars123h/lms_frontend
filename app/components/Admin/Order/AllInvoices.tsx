@@ -45,7 +45,7 @@ const AllInvoices = ({ isDashboard }: Props) => {
   const allUser = () => {
     axios({
       method: "GET",
-      url: `${process.env.NEXT_PUBLIC_SERVER_URI}/get-users`,
+      url: `${process.env.NEXT_PUBLIC_SERVER_URI}get-users`,
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -97,7 +97,7 @@ const AllInvoices = ({ isDashboard }: Props) => {
       });
       setOrderData(temp);
     }
-  }, [coursesAll, usersAll, ordersAll]);
+  }, []);
 
   const columns: any = [
     { field: "id", headerName: "ID", flex: 0.3 },

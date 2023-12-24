@@ -6,10 +6,7 @@ import { Box, CircularProgress } from "@mui/material";
 import OrdersAnalytics from "../Analytics/OrdersAnalytics";
 import AllInvoices from "../Order/AllInvoices";
 import axios from "axios";
-import {
-  useGetOrdersAnalyticsQuery,
-  useGetUsersAnalyticsQuery,
-} from "@/redux/features/analytics/analyticsApi";
+  
 import { getCookie } from "@/app/helper/auth";
 
 type Props = {
@@ -51,58 +48,8 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
   const [analyticsOrder, setAnalyticsOrder] = useState<any>(null);
 
 
-  const { data, isLoading } = useGetUsersAnalyticsQuery({});
-  const { data: ordersData, isLoading: ordersLoading } =
-    useGetOrdersAnalyticsQuery({});
+
   const token = getCookie("token");
-
-  useEffect(() => {
-    if (isLoading && ordersLoading) {
-      return;
-    } else {
-      if (data && ordersData) {
-        const usersLastTwoMonths = data.users.last12Months.slice(-2);
-        const ordersLastTwoMonths = ordersData.orders.last12Months.slice(-2);
-
-        if (
-          usersLastTwoMonths.length === 2 &&
-          ordersLastTwoMonths.length === 2
-        ) {
-          const usersCurrentMonth = usersLastTwoMonths[1].count;
-          const usersPreviousMonth = usersLastTwoMonths[0].count;
-          const ordersCurrentMonth = ordersLastTwoMonths[1].count;
-          const ordersPreviousMonth = ordersLastTwoMonths[0].count;
-
-          const usersPercentChange =
-            usersPreviousMonth !== 0
-              ? ((usersCurrentMonth - usersPreviousMonth) /
-                  usersPreviousMonth) *
-                100
-              : 100;
-
-          const ordersPercentChange =
-            ordersPreviousMonth !== 0
-              ? ((ordersCurrentMonth - ordersPreviousMonth) /
-                  ordersPreviousMonth) *
-                100
-              : 100;
-
-          setuserComparePercentage({
-            currentMonth: usersCurrentMonth,
-            previousMonth: usersPreviousMonth,
-            percentChange: usersPercentChange,
-          });
-
-          setOrdersComparePercentage({
-            currentMonth: ordersCurrentMonth,
-            previousMonth: ordersPreviousMonth,
-            percentChange: ordersPercentChange,
-          });
-        }
-      }
-    }
-  }, [isLoading, ordersLoading, data, ordersData]);
-
 
 
   const userAnalytics = () => {
@@ -179,7 +126,7 @@ const DashboardWidgets: FC<Props> = ({ open }) => {
         });
       }
     }
-  }, [analyticsUser, analyticsOrder]);
+  }, []);
 
   return (
     <div className="mt-[30px] min-h-screen">

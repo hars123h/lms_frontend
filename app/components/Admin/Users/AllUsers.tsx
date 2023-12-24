@@ -9,11 +9,6 @@ import { GrView } from "react-icons/gr";
 import { useTheme } from "next-themes";
 import Loader from "../../Loader/Loader";
 import { format } from "timeago.js";
-import {
-  useDeleteUserMutation,
-  useGetAllUsersQuery,
-  useUpdateUserRoleMutation,
-} from "@/redux/features/user/userApi";
 import { styles } from "@/app/style/style";
 import { toast } from "react-hot-toast";
 import axios from "axios";

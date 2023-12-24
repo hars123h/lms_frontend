@@ -54,7 +54,7 @@ const InviteMember: FC<Props> = () => {
               <h4 className="font-[400] text-[15px]">Invite Link</h4>
               <span className="font-[700] tracking-[2px]">
                 {userData?.user_invite}
-              </span>
+              </span> 
 
               <h4 className="font-[400] text-[15px] mt-[8px]">Invite Link</h4>
               <CopyToClipboard

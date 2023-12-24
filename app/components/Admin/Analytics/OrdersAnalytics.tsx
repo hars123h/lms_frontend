@@ -15,43 +15,12 @@ import Loader from "../../Loader/Loader";
 import axios from "axios";
 import { getCookie } from "@/app/helper/auth";
 
-// const analyticsData = [
-//   {
-//     name: "Page A",
-//     Count: 4000,
-//   },
-//   {
-//     name: "Page B",
-//     Count: 3000,
-//   },
-//   {
-//     name: "Page C",
-//     Count: 5000,
-//   },
-//   {
-//     name: "Page D",
-//     Count: 1000,
-//   },
-//   {
-//     name: "Page E",
-//     Count: 4000,
-//   },
-//   {
-//     name: "Page F",
-//     Count: 800,
-//   },
-//   {
-//     name: "Page G",
-//     Count: 200,
-//   },
-// ];
-
 type Props = {
   isDashboard?: boolean;
 };
 
 export default function OrdersAnalytics({ isDashboard }: Props) {
-  // const {data, isLoading } = useGetOrdersAnalyticsQuery({});
+
   const [orderData, setOrderData] = useState<any>(null);
   const token = getCookie("token");
 
