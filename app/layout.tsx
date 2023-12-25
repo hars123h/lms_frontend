@@ -10,8 +10,8 @@ import { SessionProvider } from "next-auth/react";
 
 import socketIO from "socket.io-client";
 const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
-const socketId = socketIO(ENDPOINT, {withCredentials: true, transports: ["websocket"] });
-// const socketId = socketIO('http://localhost:8000/',{  
+const socketId = socketIO(ENDPOINT, { transports: ["websocket"]});
+// const socketId = socketIO('http://localhost:8000/',{
 //   withCredentials: true,
 //   transports: ["websocket"]
 // })
@@ -36,6 +36,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  useEffect(() => {
+    socketId.on("connection", () => {});
+  }, []);
   return (
     <>
       <html lang="en" suppressHydrationWarning={true}>
@@ -49,9 +52,8 @@ export default function RootLayout({
                 defaultTheme="system"
                 enableSystem
               >
-                
-                  <div>{children}</div>
-                
+                <div>{children}</div>
+
                 <Toaster position="top-center" reverseOrder={false} />
               </ThemeProvider>
             </SessionProvider>

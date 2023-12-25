@@ -22,6 +22,11 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { getCookie, updateUser, isAuth } from "@/app/helper/auth";
 
+import socketIO from "socket.io-client";
+const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
+const socketId = socketIO(ENDPOINT, {transports: ["websocket"]
+   });
+
 type Props = {
   id: string;
 };
@@ -75,16 +80,28 @@ const RechargeWindow = ({ id }: Props) => {
       data: data,
     })
       .then((response) => {
-        console.log("Profile Data  UPDATE SUCCESS", response);
+        console.log("Recharge Placed  SUCCESS", response);
         updateUser(response, () => {
           toast.success("Recharge Placed Successfully");
           router.push("/deposit/records");
+          socketId.emit("notification", {
+            title: `New Recharge Request`,
+            message: `You have a new Recharge Request  ${data?.recharge_value}`,
+            userId: data?.user_id,
+          });
+
+          socketId.emit("recharge", {
+            title: `New Recharge Request`,
+            message: `You have a new Recharge Request  ${data?.recharge_value}`,
+            userId: data?.user_id,
+          });
+
 
           // setDataUser(response.data.user)
         });
       })
       .catch((error) => {
-        console.log("Profile Image  Update Error", error.response.data.message);
+        console.log("Recharge Placed  Error", error.response.data.message);
         // setValues({ ...values, buttonText: "Submit" });
         toast.error(error.response.data.message);
       });

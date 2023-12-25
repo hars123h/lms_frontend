@@ -23,6 +23,9 @@ import {
 } from "@/redux/features/recharge/rechargeApi";
 import axios from "axios";
 import { getCookie } from "@/app/helper/auth";
+import socketIO from "socket.io-client";
+const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
+const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
 
 type Props = {};
 
@@ -60,7 +63,13 @@ const AllRecharges: FC<Props> = () => {
 
   useEffect(() => {
     setRechargeData(data?.recharge);
-  }, [data]);
+  }, [data, toggle]);
+
+  useEffect(() => {
+    socketId.on("newRecharge", (data) => {
+      rechargelAll();
+    });
+  }, []);
 
   useEffect(() => {
     if (isSuccess) {

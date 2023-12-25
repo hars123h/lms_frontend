@@ -22,9 +22,10 @@ import { VscVerifiedFilled } from "react-icons/vsc";
 import Ratings from "@/app/utils/Ratings";
 import axios from "axios";
 import { getCookie } from "@/app/helper/auth";
-// import socketIO from "socket.io-client";
-// const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
-// const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
+import socketIO from "socket.io-client";
+const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
+const socketId = socketIO(ENDPOINT, {transports: ["websocket"]
+   });
 
 type Props = {
   data: any;
@@ -149,6 +150,11 @@ Props) => {
           setQuestion("");
           setFetchData(!fetchData);
           setQuestionLoading(false);
+          socketId.emit("notification", {
+            title: `New Question Received`,
+            message: `You have a new question in ${data[activeVideo].title}`,
+            userId: user._id,
+          });
 
           // setContentCourse(response.data.content);
         })
@@ -254,7 +260,13 @@ Props) => {
         setAnswer("");
         setFetchData(!fetchCourse);
         setAnswerLoading(false);
-
+        if (user.role !== "admin") {
+          socketId.emit("notification", {
+            title: `New Reply Received`,
+            message: `You have a new question in ${data[activeVideo].title}`,
+            userId: user._id,
+          });
+        }
         // setContentCourse(response.data.content);
       })
       .catch((error) => {
@@ -294,6 +306,11 @@ Props) => {
           setFetchCourse(!fetchCourse);
           setReviewLoading(false);
           // setContentCourse(response.data.content);
+          socketId.emit("notification", {
+            title: `New Review Received`,
+            message: `You have a new Review in ${data[activeVideo].title}`,
+            userId: user._id,
+          });
         })
         .catch((error) => {
           console.log("Review Submit Error", error.response.data.message);
